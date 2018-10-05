@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="get_started">Get started</string>
+    <string name="app_logo">App Logo</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="signup">Signup</string>
+    <string name="login">Login</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="enter_your_message">Enter your message</string>
+    <string name="user_image">User Image</string>
+    <string name="send_message_button">Send Message Button</string>
+    <string name="logout">Logout</string>
+    <string name="signup_with_email">Signup with email</string>
+    <string name="name">Name</string>
+    <string name="message_login_intent">Already have an Account. Click here</string>
+</resources>
