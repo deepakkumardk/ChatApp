@@ -22,6 +22,7 @@
         <activity android:name=".view.ui.ContactsActivity" />
         <activity android:name=".view.ui.AllUsersActivity" />
         <activity android:name=".view.ui.ProfileActivity" />
+        <activity android:name=".view.ui.ChatActivity"></activity>
     </application>
 
 </manifest>

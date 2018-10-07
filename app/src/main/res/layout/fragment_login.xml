@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".view.ui.fragment.LoginFragment">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/app_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,7 +28,7 @@
         android:id="@+id/email_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="8dp"
         android:hint="@string/email"
         android:inputType="textEmailAddress"
         tools:ignore="Autofill" />
@@ -44,7 +44,7 @@
         android:id="@+id/password_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="8dp"
         android:hint="@string/password"
         android:inputType="textPassword"
         tools:ignore="Autofill" />
@@ -55,6 +55,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="16dp"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/colorWhite"
         android:text="@string/login" />
 
 </LinearLayout>

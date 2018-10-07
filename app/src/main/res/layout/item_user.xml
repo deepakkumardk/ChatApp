@@ -15,7 +15,6 @@
             android:id="@+id/item_user_image"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_gravity="center"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:contentDescription="@string/user_image"

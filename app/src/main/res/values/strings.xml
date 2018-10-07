@@ -14,4 +14,6 @@
     <string name="signup_with_email">Signup with email</string>
     <string name="name">Name</string>
     <string name="message_login_intent">Already have an Account. Click here</string>
+    <string name="profile">Profile</string>
+    <string name="all_users">All Users</string>
 </resources>
