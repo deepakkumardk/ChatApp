@@ -1,15 +1,29 @@
 package com.deepak.chatapp.view.ui.fragment
 
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import com.deepak.chatapp.R
+import com.deepak.chatapp.view.ui.ContactsActivity
+import com.deepak.chatapp.view.ui.USER_EMAIL
+import com.deepak.chatapp.view.ui.USER_ID
+import com.deepak.chatapp.view.ui.USER_NAME
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_signup.*
+import org.jetbrains.anko.clearTop
 import org.jetbrains.anko.sdk27.coroutines.onClick
+import org.jetbrains.anko.support.v4.alert
+import org.jetbrains.anko.support.v4.intentFor
+import org.jetbrains.anko.support.v4.toast
+import org.jetbrains.anko.yesButton
 
 class SignupFragment : Fragment() {
+    private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -18,17 +32,87 @@ class SignupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        signup_btn.onClick { signupUser() }
 
         login_text_intent.onClick {
             activity?.supportFragmentManager
                     ?.beginTransaction()
                     ?.replace(R.id.main_frame, LoginFragment())
+                    ?.addToBackStack("Signup Fragment")
                     ?.commit()
         }
+
+        btn_signup.onClick { signupUser() }
 
     }
 
 
-    private fun signupUser() {}
+    private fun signupUser() {
+        val name = name_signup.text.toString()
+        val email = email_signup.text.toString()
+        val password = password_signup.text.toString()
+
+        if (validateField(name, email, password)) {
+            showProgressBar()
+            auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        hideProgressBar()
+                        if (task.isSuccessful) {
+                            insertUserIntoFirestore(name, email)
+                            alert("You have successfully signed up. Let's get started. ") {
+                                yesButton {
+                                    activity?.finish()
+                                    startActivity(intentFor<ContactsActivity>().clearTop())
+                                }
+                            }.show() // todo add already user exist
+                        } else {
+                            toast(task.exception?.message.toString())
+                        }
+                    }
+        }
+    }
+
+    private fun insertUserIntoFirestore(name: String, email: String) {
+        val currentUser = auth.currentUser
+        val uid = currentUser?.uid.toString()
+        val user = mutableMapOf<String, Any>(
+                USER_ID to uid,
+                USER_NAME to name,
+                USER_EMAIL to email)
+
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("users")
+                .document(uid)
+                .set(user)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        toast("User added to firestore")
+
+                    } else {
+                        toast(task.exception?.message.toString())
+                    }
+                }
+    }
+
+    private fun showProgressBar() {
+        progress_bar_signup.visibility = View.VISIBLE
+        linear_layout_signup.setBackgroundColor(Color.GRAY)
+        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+    }
+
+    private fun hideProgressBar() {
+        progress_bar_signup.visibility = View.GONE
+        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+    }
+
+    private fun validateField(name: String, email: String, password: String): Boolean {
+        return when {
+            name.isEmpty() || email.isEmpty() || password.isEmpty() -> {
+                toast("Some Field(s) are empty")
+                false
+            }
+            else -> true
+        }
+    }
+
 }

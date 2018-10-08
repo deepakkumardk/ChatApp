@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/home/deepak/Downloads/Software/android-studio-ide-173.4720617-linux/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_add_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/home/deepak/Downloads/Software/android-studio-ide-173.4720617-linux/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/av/ic_library_books_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -28,9 +28,11 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_add" />
+                            <entry key="height" value="48" />
+                            <entry key="outputName" value="ic_library" />
+                            <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="$USER_HOME$" />
+                            <entry key="width" value="48" />
                           </map>
                         </option>
                       </PersistentState>

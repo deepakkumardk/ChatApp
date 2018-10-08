@@ -2,6 +2,7 @@ package com.deepak.chatapp.view.ui.fragment
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,11 +21,15 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         get_started_btn.onClick {
-            activity?.supportFragmentManager?.beginTransaction()
-                    ?.replace(R.id.main_frame, SignupFragment())?.commit()
+            activity?.supportFragmentManager
+                    ?.beginTransaction()
+                    ?.replace(R.id.main_frame, SignupFragment())
+                    ?.addToBackStack("Main Fragment")
+                    ?.commit()
         }
 
     }
 
+    fun Fragment.log(message: String) = Log.d("TAG", message)
 
 }

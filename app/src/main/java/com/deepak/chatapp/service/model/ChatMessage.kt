@@ -1,8 +1,10 @@
 package com.deepak.chatapp.service.model
 
+import com.google.firebase.Timestamp
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+
 data class ChatMessage(
-        var a: String
-        /*
         @SerializedName("message")
         @Expose
         var message: String = "",
@@ -21,5 +23,4 @@ data class ChatMessage(
         @SerializedName("timestamp_message")
         @Expose
         var timestamp: Timestamp = Timestamp.now()
-        */
 )
