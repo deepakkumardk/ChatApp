@@ -11,7 +11,7 @@ data class ChatMessage(
         @SerializedName("senderId")
         @Expose
         var senderId: String = "",
-        @SerializedName("senderName")
+        /*@SerializedName("senderName")
         @Expose
         var senderName: String = "",
         @SerializedName("receiverId")
@@ -19,8 +19,8 @@ data class ChatMessage(
         var receiverId: String = "",
         @SerializedName("receiverName")
         @Expose
-        var receiverName: String = "",
+        var receiverName: String = "",*/
         @SerializedName("timestamp_message")
         @Expose
-        var timestamp: Timestamp = Timestamp.now()
+        var timestamp: Timestamp? = null
 )

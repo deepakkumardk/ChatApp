@@ -5,7 +5,8 @@ import android.support.v7.app.AppCompatActivity
 import com.deepak.chatapp.R
 import com.deepak.chatapp.view.ui.fragment.MainFragment
 import com.google.firebase.auth.FirebaseAuth
-import org.jetbrains.anko.startActivity
+import org.jetbrains.anko.clearTop
+import org.jetbrains.anko.intentFor
 
 const val USER_ID = "uid"
 const val USER_NAME = "name"
@@ -25,6 +26,6 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val currentUser = auth.currentUser
         if (currentUser != null)
-            startActivity<ContactsActivity>()
+            startActivity(intentFor<ContactsActivity>().clearTop())
     }
 }

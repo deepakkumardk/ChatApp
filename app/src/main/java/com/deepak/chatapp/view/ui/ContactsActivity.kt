@@ -55,9 +55,13 @@ class ContactsActivity : AppCompatActivity() {
                 Glide.with(context)
                         .load(R.drawable.ic_person)
                         .into(holder.userImage)
+                val a = holder.adapterPosition
                 holder.itemView.setOnClickListener {
                     val intent = Intent(context, ChatActivity::class.java)
-                    holder.itemView.context.startActivity(intent)
+//                    intent.putExtra("fromUid",uid)
+                    // TODO("add the real toUid")
+                    intent.putExtra("toUid", "16Ra5MLjFzNIa2evocONOjZgWVE3")
+                    context.startActivity(intent)
                 }
             }
         }
@@ -75,11 +79,17 @@ class ContactsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.action_all_users -> startActivity<AllUsersActivity>()
-            R.id.action_profile -> startActivity<ProfileActivity>()
+        return when (item?.itemId) {
+            R.id.action_all_users -> {
+                startActivity<AllUsersActivity>()
+                true
+            }
+            R.id.action_profile -> {
+                startActivity<ProfileActivity>()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onStart() {
@@ -96,9 +106,5 @@ class ContactsActivity : AppCompatActivity() {
         var userName: TextView = view.find(R.id.item_user_name)
         var userEmail: TextView = view.find(R.id.item_user_email)
         var userImage: CircleImageView = view.find(R.id.item_user_image)
-
-        /*init {
-            view.setOnClickListener { toast("User clicked $userEmail") }
-        }*/
     }
 }
