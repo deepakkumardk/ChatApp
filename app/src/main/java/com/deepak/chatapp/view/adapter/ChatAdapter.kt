@@ -44,7 +44,7 @@ class ChatAdapter(private val options: FirestoreRecyclerOptions<ChatMessage>) : 
 
 
     class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        var chatSender: TextView = view.find(R.id.item_chat_sent)
-        var chatReceiver: TextView = view.find(R.id.item_chat_received)
+        var chatSender: TextView = view.find(R.id.item_chat_message)
+        var chatReceiver: TextView = view.find(R.id.item_chat_message)
     }
 }

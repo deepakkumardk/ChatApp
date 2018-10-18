@@ -16,10 +16,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
-import org.jetbrains.anko.find
+import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
-import org.jetbrains.anko.startActivity
-import org.jetbrains.anko.toast
 
 class ContactsActivity : AppCompatActivity() {
     private val auth: FirebaseAuth
@@ -37,9 +35,9 @@ class ContactsActivity : AppCompatActivity() {
         }
 
         val uid = auth.currentUser?.uid.toString()
-        val query = firestore.collection("contacts").document(uid).collection("myContacts")
+        val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
         val options = FirestoreRecyclerOptions.Builder<User>()
-                .setQuery(query, User::class.java)
+                .setQuery(refContacts, User::class.java)
                 .build()
 
         adapter = object : FirestoreRecyclerAdapter<User, ContactViewHolder>(options) {
@@ -55,19 +53,23 @@ class ContactsActivity : AppCompatActivity() {
                 Glide.with(context)
                         .load(R.drawable.ic_person)
                         .into(holder.userImage)
-                val a = holder.adapterPosition
                 holder.itemView.setOnClickListener {
                     val intent = Intent(context, ChatActivity::class.java)
-//                    intent.putExtra("fromUid",uid)
-                    // TODO("add the real toUid")
-                    intent.putExtra("toUid", "16Ra5MLjFzNIa2evocONOjZgWVE3")
+                    val toUserUid = getItem(position).uid
+                    val toUserName = getItem(position).name
+                    val toUserEmail = getItem(position).email
+                    intent.putExtra("toUserUid", toUserUid)
+                    intent.putExtra("toUserName", toUserName)
+                    intent.putExtra("toUserEmail", toUserEmail)
                     context.startActivity(intent)
                 }
             }
         }
 
-        recycler_view_contacts.hasFixedSize()
-        recycler_view_contacts.layoutManager = LinearLayoutManager(applicationContext)
+        recycler_view_contacts.apply {
+            hasFixedSize()
+            layoutManager = LinearLayoutManager(applicationContext)
+        }
         recycler_view_contacts.adapter = adapter
         adapter.notifyDataSetChanged()
 
@@ -94,7 +96,11 @@ class ContactsActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        adapter.startListening()
+        if (auth.currentUser == null) {
+            startActivity(intentFor<MainActivity>().clearTop())
+        } else {
+            adapter.startListening()
+        }
     }
 
     override fun onStop() {

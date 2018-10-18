@@ -17,8 +17,10 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_chat.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -32,89 +34,72 @@ class ChatActivity : AppCompatActivity() {
             by lazy { FirebaseAuth.getInstance() }
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
+    private lateinit var refSenderChats: CollectionReference
     private var userInfo: User? = null
-    private lateinit var uid: String
-    private lateinit var toUid: String
+    private lateinit var senderUid: String
+    private lateinit var receiverUid: String
+    private lateinit var toUserName: String
+    private lateinit var toUserEmail: String
     private lateinit var adapter: FirestoreRecyclerAdapter<ChatMessage, ChatViewHolder>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        // get the all chat messages from the subcollection myChats mapped to the toUid user
-//        val currentUser = currentUserInfo()
-        uid = auth.currentUser?.uid.toString()
+        senderUid = auth.currentUser?.uid.toString()
 
-        toUid = intent.getStringExtra("toUid")
+        receiverUid = intent?.getStringExtra("toUserUid").toString()
+        toUserName = intent?.getStringExtra("toUserName").toString()
+        toUserEmail = intent?.getStringExtra("toUserEmail").toString()
+        log("$receiverUid $toUserName $toUserEmail")
 
-        val query = firestore.collection("chat").document(uid)
-                .collection("myChats").document(toUid)
+        supportActionBar?.title = toUserName
+
+        //get all the chat messages from the subcollection myChats mapped to the receiverUid user
+        refSenderChats = firestore.collection("chat").document(senderUid)
+                .collection("myChats").document(receiverUid)
                 .collection("allChats")
 
-        val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
-                .setQuery(query, ChatMessage::class.java)
-                .build()
+        val chatQuery = refSenderChats.orderBy("sentAt", Query.Direction.ASCENDING)
 
-        query.document(toUid)
-                .get()
-                .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        val document = it.result
-                        if (document?.exists()!!) {
-//                            for (document in ) {
-                            val chats = document.toObject(ChatMessage::class.java)
-                            log("${chats?.message}")
-//                            }
-                        }
-                    } else {
-                        toast(it.exception?.message.toString())
-                    }
-                }
+        val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
+                .setQuery(chatQuery, ChatMessage::class.java)
+                .build()
 
         adapter = object : FirestoreRecyclerAdapter<ChatMessage, ChatViewHolder>(options) {
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-                return if (viewType == R.layout.item_message_sent) {
-                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_sent, parent, false)
+                return if (viewType == R.layout.item_message_received) {
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_received, parent, false)
                     ChatViewHolder(view)
                 } else {
-                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_received, parent, false)
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_sent, parent, false)
                     ChatViewHolder(view)
                 }
             }
 
             override fun getItemViewType(position: Int): Int {
                 return when {
-                    uid != getItem(position).senderId -> R.layout.item_message_sent
-                    else -> R.layout.item_message_received
+                    senderUid != getItem(position).senderId -> R.layout.item_message_received
+                    else -> R.layout.item_message_sent
                 }
             }
 
             override fun onBindViewHolder(holder: ChatViewHolder, position: Int, model: ChatMessage) {
-                query.document(toUid)
-                        .get()
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                val document = it.result
-                                if (document?.exists()!!) {
-                                    val chats = document.toObject(ChatMessage::class.java)
-//                                    holder.chatSender.text = chats?.message
-//                                    holder.chatReceiver.text = chats?.message
-                                }
-                            } else {
-                                toast(it.exception?.message.toString())
-                            }
-                        }
+                holder.itemChat.text = model.message
             }
 
             override fun onChildChanged(type: ChangeEventType, snapshot: DocumentSnapshot, newIndex: Int, oldIndex: Int) {
                 super.onChildChanged(type, snapshot, newIndex, oldIndex)
-                toast("onChildChanged")
+                log("onChildChanged")
+                log(snapshot.get("message").toString())
+                recycler_view_chat.layoutManager?.scrollToPosition(itemCount - 1)
             }
         }
 
-
-        recycler_view_chat.hasFixedSize()
-        recycler_view_chat.layoutManager = LinearLayoutManager(applicationContext)
+        recycler_view_chat.apply {
+            hasFixedSize()
+            layoutManager = LinearLayoutManager(applicationContext)
+        }
         recycler_view_chat.adapter = adapter
         adapter.notifyDataSetChanged()
 
@@ -122,6 +107,8 @@ class ChatActivity : AppCompatActivity() {
             val message = message_edit_text.text.toString()
             if (message.isNotBlank())
                 sendMessage(message)
+            else
+                toast("Message is Blank")
         }
 
     }
@@ -130,7 +117,7 @@ class ChatActivity : AppCompatActivity() {
         runBlocking {
             async(CommonPool) {
                 firestore.collection("users")
-                        .document(uid)
+                        .document(senderUid)
                         .get()
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
@@ -146,24 +133,40 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage(message: String) {
-        val chatMap = mutableMapOf<String, Any>(
+        val chatMapSender = mutableMapOf<String, Any>(
                 "message" to message,
-//                "senderId" to uid,
-                "sendAt" to Timestamp.now())
+                "senderId" to senderUid,
+                "receiverId" to receiverUid,
+                "sentAt" to Timestamp.now())
+
+        val chatMapReceiver = mutableMapOf<String, Any>(
+                "message" to message,
+                "senderId" to receiverUid,
+                "receiverId" to senderUid,
+                "sentAt" to Timestamp.now())
+
 
         //send message to server and add it to the myChats subcollection
-//        val docRef = firestore.collection("chat").document(uid).collection("myChats")
-
-        //chat of uid with toUid
-        val docRef = firestore.collection("chat").document(uid)
-                .collection("myChats").document(toUid)
-                .collection("allChats")
-        docRef.document()
-                .set(chatMap)
+        refSenderChats.document()
+                .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         toast("message sent to user")
                         message_edit_text.setText("")
+                    } else {
+                        toast(task.exception?.message.toString())
+                    }
+                }
+
+        val refReceiverChats = firestore.collection("chat").document(receiverUid)
+                .collection("myChats").document(senderUid)
+                .collection("allChats")
+
+        refReceiverChats.document()
+                .set(chatMapReceiver)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        toast("message sent to receiver")
                     } else {
                         toast(task.exception?.message.toString())
                     }
@@ -181,8 +184,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     internal inner class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        var chatSender: TextView = view.find(R.id.item_chat_sent)
-        var chatReceiver: TextView = view.find(R.id.item_chat_received)
+        var itemChat = view.find<TextView>(R.id.item_chat_message)
     }
 }
 
