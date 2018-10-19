@@ -68,11 +68,11 @@ class ChatActivity : AppCompatActivity() {
 
         adapter = object : FirestoreRecyclerAdapter<ChatMessage, ChatViewHolder>(options) {
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-                return if (viewType == R.layout.item_message_received) {
-                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_received, parent, false)
+                return if (viewType == R.layout.item_message_sent) {
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_sent, parent, false)
                     ChatViewHolder(view)
                 } else {
-                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_sent, parent, false)
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_message_received, parent, false)
                     ChatViewHolder(view)
                 }
             }
@@ -139,13 +139,6 @@ class ChatActivity : AppCompatActivity() {
                 "receiverId" to receiverUid,
                 "sentAt" to Timestamp.now())
 
-        val chatMapReceiver = mutableMapOf<String, Any>(
-                "message" to message,
-                "senderId" to receiverUid,
-                "receiverId" to senderUid,
-                "sentAt" to Timestamp.now())
-
-
         //send message to server and add it to the myChats subcollection
         refSenderChats.document()
                 .set(chatMapSender)
@@ -158,12 +151,18 @@ class ChatActivity : AppCompatActivity() {
                     }
                 }
 
+//        val chatMapReceiver = mutableMapOf<String, Any>(
+//                "message" to message,
+//                "senderId" to receiverUid,
+//                "receiverId" to senderUid,
+//                "sentAt" to Timestamp.now())
+
         val refReceiverChats = firestore.collection("chat").document(receiverUid)
                 .collection("myChats").document(senderUid)
                 .collection("allChats")
 
         refReceiverChats.document()
-                .set(chatMapReceiver)
+                .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         toast("message sent to receiver")
