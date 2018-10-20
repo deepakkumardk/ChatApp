@@ -96,13 +96,14 @@ class SignupFragment : Fragment() {
 
     private fun showProgressBar() {
         progress_bar_signup.visibility = View.VISIBLE
-        linear_layout_signup.setBackgroundColor(Color.GRAY)
+        linear_layout_signup.setBackgroundColor(resources.getColor(R.color.colorLightGray))
         activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 
     private fun hideProgressBar() {
         progress_bar_signup.visibility = View.GONE
-        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        linear_layout_signup.setBackgroundColor(Color.WHITE)
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 
     private fun validateField(name: String, email: String, password: String): Boolean {

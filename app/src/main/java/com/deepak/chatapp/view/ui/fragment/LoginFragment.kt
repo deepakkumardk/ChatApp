@@ -57,7 +57,8 @@ class LoginFragment : Fragment() {
 
     private fun hideProgressBar() {
         progress_bar_login.visibility = View.GONE
-        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        linear_layout_login.setBackgroundColor(Color.WHITE)
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 
     private fun validateField(email: String, password: String): Boolean {

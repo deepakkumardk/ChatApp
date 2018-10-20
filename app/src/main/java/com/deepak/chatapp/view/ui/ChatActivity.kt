@@ -11,31 +11,23 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.ChatMessage
-import com.deepak.chatapp.service.model.User
 import com.firebase.ui.common.ChangeEventType
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_chat.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.toast
 
 class ChatActivity : AppCompatActivity() {
-    private val auth: FirebaseAuth
-            by lazy { FirebaseAuth.getInstance() }
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var refSenderChats: CollectionReference
-    private var userInfo: User? = null
     private lateinit var senderUid: String
     private lateinit var receiverUid: String
     private lateinit var toUserName: String
@@ -46,7 +38,7 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        senderUid = auth.currentUser?.uid.toString()
+        senderUid = intent?.getStringExtra(USER_ID).toString()
 
         receiverUid = intent?.getStringExtra("toUserUid").toString()
         toUserName = intent?.getStringExtra("toUserName").toString()
@@ -61,7 +53,6 @@ class ChatActivity : AppCompatActivity() {
                 .collection("allChats")
 
         val chatQuery = refSenderChats.orderBy("sentAt", Query.Direction.ASCENDING)
-
         val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
                 .setQuery(chatQuery, ChatMessage::class.java)
                 .build()
@@ -113,25 +104,6 @@ class ChatActivity : AppCompatActivity() {
 
     }
 
-    private fun currentUserInfo(): User? {
-        runBlocking {
-            async(CommonPool) {
-                firestore.collection("users")
-                        .document(senderUid)
-                        .get()
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                userInfo = it.result?.toObject(User::class.java)
-                            } else {
-                                toast(it.exception?.message.toString())
-                            }
-                        }
-                return@async userInfo
-            }.await()
-        }
-        return userInfo
-    }
-
     private fun sendMessage(message: String) {
         val chatMapSender = mutableMapOf<String, Any>(
                 "message" to message,
@@ -150,12 +122,6 @@ class ChatActivity : AppCompatActivity() {
                         toast(task.exception?.message.toString())
                     }
                 }
-
-//        val chatMapReceiver = mutableMapOf<String, Any>(
-//                "message" to message,
-//                "senderId" to receiverUid,
-//                "receiverId" to senderUid,
-//                "sentAt" to Timestamp.now())
 
         val refReceiverChats = firestore.collection("chat").document(receiverUid)
                 .collection("myChats").document(senderUid)

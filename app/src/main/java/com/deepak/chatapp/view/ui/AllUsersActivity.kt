@@ -14,19 +14,26 @@ import com.deepak.chatapp.service.model.User
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_all_users.*
-import org.jetbrains.anko.find
-import org.jetbrains.anko.toast
+import org.jetbrains.anko.*
 
 class AllUsersActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var adapter: FirestoreRecyclerAdapter<User, UserViewHolder>
+    private lateinit var uid: String
+    private var name: String? = null
+    private var email: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_users)
+
+        uid = intent?.getStringExtra(USER_ID).toString()
+        name = intent?.getStringExtra(USER_NAME).toString()
+        email = intent?.getStringExtra(USER_EMAIL).toString()
 
         val query = firestore.collection("users")
         val options = FirestoreRecyclerOptions.Builder<User>()
@@ -46,16 +53,65 @@ class AllUsersActivity : AppCompatActivity() {
                 Glide.with(context)
                         .load(R.drawable.ic_person)
                         .into(holder.userImage)
-                holder.itemView.setOnClickListener { toast("users clicked...") }
+
+                holder.itemView.setOnClickListener { _ ->
+                    val addUser = User(model.uid, model.name, model.email)
+                    if (getItem(position).uid != uid) {
+                        alert("User will be added to your contact list") {
+                            yesButton { addUserToContacts(addUser) }
+                            noButton { it.dismiss() }
+                        }.show()
+                    } else {
+                        toast("Hey! it's you")
+                    }
+                }
             }
         }
 
-        recycler_view_users.hasFixedSize()
-        recycler_view_users.layoutManager = LinearLayoutManager(applicationContext)
+        recycler_view_users.apply {
+            hasFixedSize()
+            layoutManager = LinearLayoutManager(applicationContext)
+        }
         recycler_view_users.adapter = adapter
         adapter.notifyDataSetChanged()
     }
 
+    private fun addUserToContacts(addUser: User) {
+        val user = mutableMapOf<String, Any>(
+                USER_ID to addUser.uid,
+                USER_NAME to addUser.name,
+                USER_EMAIL to addUser.email)
+
+        // Add the clicked user in the current user's contacts List
+        val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
+        refContacts.document(addUser.uid)
+                .set(user, SetOptions.merge())
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        toast("User added to contacts")
+                    } else {
+                        toast(task.exception?.message.toString())
+                    }
+                }
+
+        val activeUser = mutableMapOf<String, Any>(
+                USER_ID to uid,
+                USER_NAME to name.toString(),
+                USER_EMAIL to email.toString())
+
+        // Add the clicked user in the current user's contacts List
+        val refContactsReceiver = firestore.collection("contacts").document(addUser.uid).collection("myContacts")
+        refContactsReceiver.document(uid)
+                .set(activeUser, SetOptions.merge())
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        log("User added to contacts")
+                    } else {
+                        toast(task.exception?.message.toString())
+                        log(task.exception?.message.toString())
+                    }
+                }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -72,5 +128,4 @@ class AllUsersActivity : AppCompatActivity() {
         var userEmail: TextView = view.find(R.id.item_user_email)
         var userImage: CircleImageView = view.find(R.id.item_user_image)
     }
-
 }

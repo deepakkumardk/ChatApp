@@ -19,8 +19,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.ui.AllUsersActivity" />
-        <activity android:name=".view.ui.ProfileActivity" />
+        <activity
+            android:name=".view.ui.AllUsersActivity"
+            android:label="All Users"
+            android:parentActivityName=".view.ui.ContactsActivity" />
+        <activity
+            android:name=".view.ui.ProfileActivity"
+            android:label="Profile"
+            android:parentActivityName=".view.ui.ContactsActivity" />
         <activity
             android:name=".view.ui.ChatActivity"
             android:parentActivityName=".view.ui.ContactsActivity" />

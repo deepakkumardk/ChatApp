@@ -1,8 +1,8 @@
 package com.deepak.chatapp.view.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
@@ -14,8 +14,12 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 
@@ -25,16 +29,17 @@ class ContactsActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var adapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
+    private lateinit var uid: String
+    private var name: String? = null
+    private var email: String? = null
+    private var userInfo: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
-        fab.onClick {
-            toast("Will add the functionality to add user to contacts from all users")
-        }
-
-        val uid = auth.currentUser?.uid.toString()
+        uid = auth.currentUser?.uid.toString()
+        currentUserInfo()
         val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
         val options = FirestoreRecyclerOptions.Builder<User>()
                 .setQuery(refContacts, User::class.java)
@@ -54,25 +59,55 @@ class ContactsActivity : AppCompatActivity() {
                         .load(R.drawable.ic_person)
                         .into(holder.userImage)
                 holder.itemView.setOnClickListener {
-                    val intent = Intent(context, ChatActivity::class.java)
                     val toUserUid = getItem(position).uid
                     val toUserName = getItem(position).name
                     val toUserEmail = getItem(position).email
-                    intent.putExtra("toUserUid", toUserUid)
-                    intent.putExtra("toUserName", toUserName)
-                    intent.putExtra("toUserEmail", toUserEmail)
-                    context.startActivity(intent)
+                    context.startActivity<ChatActivity>(
+                            USER_ID to uid,
+                            "toUserUid" to toUserUid,
+                            "toUserName" to toUserName,
+                            "toUserEmail" to toUserEmail)
                 }
             }
         }
 
+        val dividerItemDecoration = DividerItemDecoration(applicationContext, DividerItemDecoration.HORIZONTAL)
         recycler_view_contacts.apply {
             hasFixedSize()
             layoutManager = LinearLayoutManager(applicationContext)
+            addItemDecoration(dividerItemDecoration)
         }
         recycler_view_contacts.adapter = adapter
         adapter.notifyDataSetChanged()
 
+        fab.onClick {
+            startActivity<AllUsersActivity>(
+                    USER_ID to uid,
+                    USER_NAME to name,
+                    USER_EMAIL to email)
+        }
+
+    }
+
+    private fun currentUserInfo(): User? {
+        runBlocking {
+            async(CommonPool) {
+                firestore.collection("users")
+                        .document(uid)
+                        .get(Source.CACHE)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                userInfo = it.result?.toObject(User::class.java)
+                                name = userInfo?.name
+                                email = userInfo?.email
+                            } else {
+                                toast(it.exception?.message.toString())
+                            }
+                        }
+                return@async userInfo
+            }.await()
+        }
+        return userInfo
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -82,12 +117,10 @@ class ContactsActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
-            R.id.action_all_users -> {
-                startActivity<AllUsersActivity>()
-                true
-            }
             R.id.action_profile -> {
-                startActivity<ProfileActivity>()
+                startActivity<ProfileActivity>(
+                        USER_NAME to name,
+                        USER_EMAIL to email)
                 true
             }
             else -> super.onOptionsItemSelected(item)
