@@ -16,5 +16,5 @@ data class ChatMessage(
         var receiverId: String = "",
         @SerializedName("timestamp_message")
         @Expose
-        var timestamp: Timestamp? = null
+        var sentAt: Timestamp? = null
 )

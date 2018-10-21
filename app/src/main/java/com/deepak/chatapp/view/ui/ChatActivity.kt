@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.text.format.DateUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,8 @@ import kotlinx.android.synthetic.main.activity_chat.*
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.toast
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ChatActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
@@ -76,7 +79,8 @@ class ChatActivity : AppCompatActivity() {
             }
 
             override fun onBindViewHolder(holder: ChatViewHolder, position: Int, model: ChatMessage) {
-                holder.itemChat.text = model.message
+                holder.itemChatMessage.text = model.message
+                holder.itemChatTimestamp.text = model.sentAt?.dateToString()
             }
 
             override fun onChildChanged(type: ChangeEventType, snapshot: DocumentSnapshot, newIndex: Int, oldIndex: Int) {
@@ -116,7 +120,7 @@ class ChatActivity : AppCompatActivity() {
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        toast("message sent to user")
+                        log("message sent to user")
                         message_edit_text.setText("")
                     } else {
                         toast(task.exception?.message.toString())
@@ -131,7 +135,7 @@ class ChatActivity : AppCompatActivity() {
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        toast("message sent to receiver")
+                        log("message sent to receiver")
                     } else {
                         toast(task.exception?.message.toString())
                     }
@@ -149,8 +153,40 @@ class ChatActivity : AppCompatActivity() {
     }
 
     internal inner class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        var itemChat = view.find<TextView>(R.id.item_chat_message)
+        var itemChatMessage = view.find<TextView>(R.id.item_chat_message)
+        var itemChatTimestamp = view.find<TextView>(R.id.item_chat_message_timestamp)
     }
 }
 
 fun AppCompatActivity.log(message: String) = Log.d("CHATAPP_DEBUG", message)
+
+fun Timestamp.dateToString(): String {
+    val now = System.currentTimeMillis()
+    val diff = now - this.toDate().time
+    Log.d("CHATAPP_DEBUG", diff.toString())
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+    val year = days / 365
+    val yearStr = year.toString()
+    return when {
+        minutes <= 1 -> "Just now"
+        minutes <= 60 -> {
+            val ago = DateUtils.getRelativeTimeSpanString(this.toDate().time, now, DateUtils.MINUTE_IN_MILLIS)
+            ago.toString()
+        }
+        hours <= 24 -> {
+            val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            sdf.format(this.toDate())
+        }
+        yearStr == Calendar.YEAR.toString() -> {
+            val sdf = SimpleDateFormat("d MMM hh:mm a", Locale.getDefault())
+            sdf.format(this.toDate())
+        }
+        else -> {
+            val sdf = SimpleDateFormat("d MMM yy hh:mm a", Locale.getDefault())
+            sdf.format(this.toDate())
+        }
+    }
+}

@@ -21,9 +21,11 @@ class ProfileActivity : AppCompatActivity() {
         loadUserInfo()
 
         btn_logout.onClick { _ ->
-            alert("You will be logged out", "Logout") {
+            alert("You will be logged out!!", "Logout") {
                 yesButton { logout() }
                 noButton { it.dismiss() }
+            }.apply {
+                iconResource = R.drawable.ic_logout
             }.show()
         }
     }

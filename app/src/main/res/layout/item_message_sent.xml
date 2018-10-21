@@ -4,9 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp">
+    android:layout_marginStart="8dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginBottom="2dp">
 
     <android.support.v7.widget.CardView
+        android:id="@+id/item_chat_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -17,12 +23,24 @@
             android:id="@+id/item_chat_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:autoLink="all"
             android:background="@drawable/shape_message_sent"
             android:padding="8dp"
             android:textColor="@color/colorWhite"
-            android:textSize="20sp"
+            android:textColorLink="@color/colorBlack"
+            android:textSize="16sp"
             tools:text="Hello, I am fine" />
 
     </android.support.v7.widget.CardView>
+
+    <TextView
+        android:id="@+id/item_chat_message_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/item_chat_card"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:textSize="12sp"
+        tools:text="2 min. ago" />
 
 </RelativeLayout>
