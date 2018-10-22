@@ -8,10 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import com.deepak.chatapp.R
-import com.deepak.chatapp.view.ui.ContactsActivity
-import com.deepak.chatapp.view.ui.USER_EMAIL
-import com.deepak.chatapp.view.ui.USER_ID
-import com.deepak.chatapp.view.ui.USER_NAME
+import com.deepak.chatapp.view.ui.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_signup.*
@@ -77,7 +74,8 @@ class SignupFragment : Fragment() {
         val user = mutableMapOf<String, Any>(
                 USER_ID to uid,
                 USER_NAME to name,
-                USER_EMAIL to email)
+                USER_EMAIL to email,
+                USER_IMAGE to "")
 
         val firestore = FirebaseFirestore.getInstance()
 

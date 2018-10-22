@@ -119,6 +119,7 @@ class ContactsActivity : AppCompatActivity() {
         return when (item?.itemId) {
             R.id.action_profile -> {
                 startActivity<ProfileActivity>(
+                        USER_ID to uid,
                         USER_NAME to name,
                         USER_EMAIL to email)
                 true

@@ -7,15 +7,15 @@ Login to the app using the email Id and start using the Application to chat with
 :star: **See the time** when you have sent the message <br>
 :star: **Link detection** of all types <br>
 
+<img src="screenshots/ChatApp-demo-sender.gif" alt="Demo Sender" align="center" width="40%" hspace="20" title="Sender" /> <img src="screenshots/ChatApp-demo-receiver.gif" alt="Demo Receiver" align="center" width="40%" title="Receiver" />
+
+
 # Libraries Used
 - **Anko**: For Pleasant Android Development
 - **Glide**: For faster image loading
 - **CircleImageView**: For circular image view
 - **Firebase**: To authenticate the users
 - **Firestore**: To store the chats in the firestore database
-
-<img src="screenshots/ChatApp-demo-sender.gif" alt="Demo Sender" />
-<img src="screenshots/ChatApp-demo-receiver.gif" alt="Demo Receiver" />
 
 License
 -------

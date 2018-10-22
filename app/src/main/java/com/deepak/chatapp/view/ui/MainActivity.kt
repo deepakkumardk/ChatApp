@@ -8,6 +8,7 @@ import com.deepak.chatapp.view.ui.fragment.MainFragment
 const val USER_ID = "uid"
 const val USER_NAME = "name"
 const val USER_EMAIL = "email"
+const val USER_IMAGE = "image"
 
 class MainActivity : AppCompatActivity() {
 
