@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import com.deepak.chatapp.R
+import com.deepak.chatapp.util.hide
+import com.deepak.chatapp.util.show
 import com.deepak.chatapp.view.ui.ContactsActivity
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.fragment_login.*
@@ -50,13 +52,14 @@ class LoginFragment : Fragment() {
     }
 
     private fun showProgressBar() {
-        progress_bar_login.visibility = View.VISIBLE
+        progress_bar_login.show()
         linear_layout_login.setBackgroundColor(Color.GRAY)
-        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+        activity?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 
     private fun hideProgressBar() {
-        progress_bar_login.visibility = View.GONE
+        progress_bar_login.hide()
         linear_layout_login.setBackgroundColor(Color.WHITE)
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
@@ -64,12 +67,10 @@ class LoginFragment : Fragment() {
     private fun validateField(email: String, password: String): Boolean {
         return when {
             email.isEmpty() || password.isEmpty() -> {
-                toast("Email or password is empty")
+                toast("Email or Password is Empty")
                 false
             }
             else -> true
         }
     }
-
-
 }

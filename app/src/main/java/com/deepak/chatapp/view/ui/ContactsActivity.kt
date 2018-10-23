@@ -10,6 +10,7 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
+import com.deepak.chatapp.util.*
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -64,9 +65,9 @@ class ContactsActivity : AppCompatActivity() {
                     val toUserEmail = getItem(position).email
                     context.startActivity<ChatActivity>(
                             USER_ID to uid,
-                            "toUserUid" to toUserUid,
-                            "toUserName" to toUserName,
-                            "toUserEmail" to toUserEmail)
+                            TO_USER_ID to toUserUid,
+                            TO_USER_NAME to toUserName,
+                            TO_USER_EMAIL to toUserEmail)
                 }
             }
         }

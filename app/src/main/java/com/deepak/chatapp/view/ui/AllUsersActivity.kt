@@ -11,6 +11,9 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
+import com.deepak.chatapp.util.USER_EMAIL
+import com.deepak.chatapp.util.USER_ID
+import com.deepak.chatapp.util.USER_NAME
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.firestore.FirebaseFirestore

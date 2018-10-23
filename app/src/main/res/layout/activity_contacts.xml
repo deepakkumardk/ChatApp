@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorLightGray"
     tools:context=".view.ui.ContactsActivity">
 
     <android.support.v7.widget.RecyclerView
@@ -20,6 +21,5 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/colorPrimaryDark" />
-
 
 </android.support.design.widget.CoordinatorLayout>

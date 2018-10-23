@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.text.format.DateUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.ChatMessage
+import com.deepak.chatapp.util.*
 import com.firebase.ui.common.ChangeEventType
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
@@ -24,8 +24,6 @@ import kotlinx.android.synthetic.main.activity_chat.*
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.toast
-import java.text.SimpleDateFormat
-import java.util.*
 
 class ChatActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
@@ -43,9 +41,9 @@ class ChatActivity : AppCompatActivity() {
 
         senderUid = intent?.getStringExtra(USER_ID).toString()
 
-        receiverUid = intent?.getStringExtra("toUserUid").toString()
-        toUserName = intent?.getStringExtra("toUserName").toString()
-        toUserEmail = intent?.getStringExtra("toUserEmail").toString()
+        receiverUid = intent?.getStringExtra(TO_USER_ID).toString()
+        toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
+        toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
         log("$receiverUid $toUserName $toUserEmail")
 
         supportActionBar?.title = toUserName
@@ -80,7 +78,7 @@ class ChatActivity : AppCompatActivity() {
 
             override fun onBindViewHolder(holder: ChatViewHolder, position: Int, model: ChatMessage) {
                 holder.itemChatMessage.text = model.message
-                holder.itemChatTimestamp.text = model.sentAt?.dateToString()
+                holder.itemChatTimestamp.text = model.sentAt?.timestampToString()
             }
 
             override fun onChildChanged(type: ChangeEventType, snapshot: DocumentSnapshot, newIndex: Int, oldIndex: Int) {
@@ -110,10 +108,10 @@ class ChatActivity : AppCompatActivity() {
 
     private fun sendMessage(message: String) {
         val chatMapSender = mutableMapOf<String, Any>(
-                "message" to message,
-                "senderId" to senderUid,
-                "receiverId" to receiverUid,
-                "sentAt" to Timestamp.now())
+                MESSAGE to message,
+                SENDER_ID to senderUid,
+                RECEIVER_ID to receiverUid,
+                SENT_AT to Timestamp.now())
 
         //send message to server and add it to the myChats subcollection
         refSenderChats.document()
@@ -158,35 +156,5 @@ class ChatActivity : AppCompatActivity() {
     }
 }
 
-fun AppCompatActivity.log(message: String) = Log.d("CHATAPP_DEBUG", message)
+fun log(message: String) = Log.d("CHATAPP_DEBUG", message)
 
-fun Timestamp.dateToString(): String {
-    val now = System.currentTimeMillis()
-    val diff = now - this.toDate().time
-    Log.d("CHATAPP_DEBUG", diff.toString())
-    val seconds = diff / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val days = hours / 24
-    val year = days / 365
-    val yearStr = year.toString()
-    return when {
-        minutes <= 1 -> "Just now"
-        minutes <= 60 -> {
-            val ago = DateUtils.getRelativeTimeSpanString(this.toDate().time, now, DateUtils.MINUTE_IN_MILLIS)
-            ago.toString()
-        }
-        hours <= 24 -> {
-            val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-            sdf.format(this.toDate())
-        }
-        yearStr == Calendar.YEAR.toString() -> {
-            val sdf = SimpleDateFormat("d MMM hh:mm a", Locale.getDefault())
-            sdf.format(this.toDate())
-        }
-        else -> {
-            val sdf = SimpleDateFormat("d MMM yy hh:mm a", Locale.getDefault())
-            sdf.format(this.toDate())
-        }
-    }
-}

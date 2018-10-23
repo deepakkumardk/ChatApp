@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.deepak.chatapp.R
+import com.deepak.chatapp.util.replaceFragment
 import kotlinx.android.synthetic.main.fragment_main.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 
@@ -20,11 +21,8 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         get_started_btn.onClick {
-            activity?.supportFragmentManager
-                    ?.beginTransaction()
-                    ?.replace(R.id.main_frame, SignupFragment())
-                    ?.addToBackStack("Main Fragment")
-                    ?.commit()
+            activity?.replaceFragment(R.id.main_frame,
+                    SignupFragment(), "Main Fragment")
         }
 
     }

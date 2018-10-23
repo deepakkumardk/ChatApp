@@ -6,13 +6,12 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
-import com.deepak.chatapp.util.bitmapToString
+import com.deepak.chatapp.util.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -57,6 +56,7 @@ class ProfileActivity : AppCompatActivity() {
                 iconResource = R.drawable.ic_logout
             }.show()
         }
+
         display_image.onClick { pickImageFromGallery() }
     }
 
@@ -117,8 +117,7 @@ class ProfileActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == Define.ALBUM_REQUEST_CODE) {
                 photoUri = data?.getParcelableArrayListExtra(Define.INTENT_PATH)!!
-                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, photoUri[0])
-                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 720, 720, true)
+                val scaledBitmap = photoUri[0].toScaledBitmap(applicationContext)
                 Glide.with(this)
                         .load(scaledBitmap)
                         .apply(RequestOptions()
