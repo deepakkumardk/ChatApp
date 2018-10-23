@@ -37,6 +37,10 @@ fun Uri?.toScaledBitmap(context: Context): Bitmap? {
     return Bitmap.createScaledBitmap(bitmap, 720, 720, true)
 }
 
+fun Bitmap?.toUri(): Uri? {
+    return Uri.parse(this.bitmapToString())
+}
+
 fun Bitmap?.bitmapToString(): String {
     val baos = ByteArrayOutputStream()
     this?.compress(Bitmap.CompressFormat.JPEG, 100, baos)

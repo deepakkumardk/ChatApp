@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/colorBlack"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="Deepak Kumar" />
 
             <TextView
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/colorBlack"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 tools:text="deepak@gmail.com" />
         </LinearLayout>
     </LinearLayout>

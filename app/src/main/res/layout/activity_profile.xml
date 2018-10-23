@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="5"
+    android:id="@+id/linear_layout_profile"
     tools:context=".view.ui.ProfileActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView
@@ -19,14 +20,30 @@
         android:contentDescription="@string/profile_image"
         android:focusable="true"
         app:civ_border_color="@color/colorWhite"
-        app:civ_circle_background_color="@color/colorPrimaryDark"
         app:civ_border_width="1dp"
+        app:civ_circle_background_color="@color/colorPrimaryDark"
         tools:src="@drawable/ic_person" />
+
+    <Button
+        android:id="@+id/btn_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@color/colorMaterialGreen"
+        android:drawableStart="@drawable/ic_file_upload"
+        android:drawableLeft="@drawable/ic_file_upload"
+        android:padding="8dp"
+        android:text="@string/upload"
+        android:textColor="@color/colorWhite"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/display_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:drawableStart="@drawable/ic_person_profile"
         android:drawableLeft="@drawable/ic_person_profile"
         android:drawablePadding="8dp"
@@ -49,6 +66,12 @@
         android:textSize="20sp"
         tools:text="deepak@gmail.com" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
     <Button
         android:id="@+id/btn_logout"
         android:layout_width="wrap_content"

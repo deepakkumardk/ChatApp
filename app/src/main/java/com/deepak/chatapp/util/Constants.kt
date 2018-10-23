@@ -9,8 +9,13 @@ const val USER_IMAGE = "image"
 const val TO_USER_ID = "toUserUid"
 const val TO_USER_NAME = "toUserName"
 const val TO_USER_EMAIL = "toUserEmail"
-//User model constants
+//Message model constants
 const val MESSAGE = "message"
 const val SENDER_ID = "senderId"
 const val RECEIVER_ID = "receiverId"
 const val SENT_AT = "sentAt"
+//RequestCodes
+const val RC_PICK_IMAGE = 1001
+
+const val PREF_FILE_NAME = "com.deepak.chatapp.util.pref"
+const val FLAG_UPLOAD = "flagUpload"

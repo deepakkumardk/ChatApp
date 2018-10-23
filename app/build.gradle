@@ -54,11 +54,15 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-firestore:4.1.0'
     implementation 'com.google.firebase:firebase-firestore:17.1.1'
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    //storage
+    implementation 'com.google.firebase:firebase-storage:16.0.3'
+    implementation 'com.firebaseui:firebase-ui-storage:4.1.0'
 
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'com.github.jkwiecien:EasyImage:2.1.0'
     implementation 'com.sangcomz:FishBun:0.8.6'
 
+    //noinspection GradleDependency
     implementation 'com.github.hotchemi:permissionsdispatcher:3.3.1'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:3.3.1'
 }

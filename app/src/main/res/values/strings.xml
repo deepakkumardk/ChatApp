@@ -17,4 +17,5 @@
     <string name="profile">Profile</string>
     <string name="all_users">All Users</string>
     <string name="item_chat_image">Item Chat Image</string>
+    <string name="upload">Upload</string>
 </resources>

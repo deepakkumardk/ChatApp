@@ -2,20 +2,23 @@ package com.deepak.chatapp.view.ui
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
+import android.content.SharedPreferences
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.WindowManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
-import com.deepak.chatapp.service.model.User
 import com.deepak.chatapp.util.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Source
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.sangcomz.fishbun.FishBun
 import com.sangcomz.fishbun.adapter.image.impl.GlideAdapter
 import com.sangcomz.fishbun.define.Define
@@ -27,27 +30,35 @@ import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import permissions.dispatcher.NeedsPermission
 
-
 class ProfileActivity : AppCompatActivity() {
     private val auth: FirebaseAuth
             by lazy { FirebaseAuth.getInstance() }
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
+    private val storageRef: StorageReference
+            by lazy { FirebaseStorage.getInstance().reference }
+    private val sharedPreferences: SharedPreferences?
+            by lazy { getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE) }
+
     private var uid: String? = null
     private var name: String? = null
     private var email: String? = null
-    private var image: String? = null
-    private var userInfo: User? = null
     private lateinit var refUser: DocumentReference
+    private lateinit var profileRef: StorageReference
     private var photoUri = ArrayList<Uri>()
+    private var profileUrl: Uri? = null
+    private var flagUploaded: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
         loadUserInfo()
-        refUser = firestore.collection("users").document(uid.toString())
-
+        display_image.onClick { pickImageFromGallery() }
+        btn_upload.onClick {
+            sharedPreferences?.edit()?.putBoolean(FLAG_UPLOAD, false)?.apply()
+            uploadProfileImageToStorage()
+        }
         btn_logout.onClick { _ ->
             alert("You will be logged out!!", "Logout") {
                 yesButton { logout() }
@@ -56,8 +67,6 @@ class ProfileActivity : AppCompatActivity() {
                 iconResource = R.drawable.ic_logout
             }.show()
         }
-
-        display_image.onClick { pickImageFromGallery() }
     }
 
     private fun logout() {
@@ -71,36 +80,75 @@ class ProfileActivity : AppCompatActivity() {
         name = intent?.getStringExtra(USER_NAME).toString()
         email = intent?.getStringExtra(USER_EMAIL).toString()
 
-        profileImage()
+        flagUploaded = sharedPreferences?.getBoolean(FLAG_UPLOAD, false)!!
+        refUser = firestore.collection("users").document(uid.toString())
+        profileRef = storageRef.child("profile/${uid!!}")
+
+        Glide.with(this)
+                .load(R.drawable.ic_person)
+                .apply(RequestOptions().fitCenter())
+                .into(display_image)
+
+        getImageUrl()
         display_name.text = name
         display_email.text = email
-        Glide.with(this)
-                .load(image)
-                .apply(RequestOptions()
-                        .placeholder(R.drawable.ic_person)
-                        .error(R.drawable.ic_person)
-                        .centerCrop())
-                .into(display_image)
     }
 
-    private fun profileImage(): User? {
+    private fun uploadProfileImageToStorage() {
+        showProgressBar()
+//        val compressedUri = photoUri[0].toScaledBitmap(applicationContext)?.toUri()!!
+        profileRef.putFile(photoUri[0])
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        hideProgressBar()
+                        toast("Profile image uploaded successfully")
+                    } else {
+                        toast("Something went wrong...")
+                        toast(it.exception?.message.toString())
+                        log(it.exception?.message.toString())
+                    }
+                }
+    }
+
+    private fun uploadImageUrlToFirestore(uri: Uri) {
+        refUser.update(USER_IMAGE, uri.toString())
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        sharedPreferences?.edit()?.putBoolean(FLAG_UPLOAD, true)?.apply()
+                        log("Profile imageUrl uploaded successfully")
+                    } else {
+                        toast("Something went wrong...")
+                        log(it.exception?.message.toString())
+                    }
+                }
+    }
+
+    private fun getImageUrl(): Uri? {
         runBlocking {
             async(CommonPool) {
-                firestore.collection("users")
-                        .document(uid!!)
-                        .get(Source.CACHE)
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                userInfo = it.result?.toObject(User::class.java)
-                                image = userInfo?.image
-                            } else {
-                                toast(it.exception?.message.toString())
-                            }
+                profileRef.downloadUrl.addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        profileUrl = it.result
+                        Glide.with(this@ProfileActivity)
+                                .load(profileUrl)
+                                .apply(RequestOptions()
+                                        .placeholder(R.drawable.ic_person)
+                                        .error(R.drawable.ic_person)
+                                        .fitCenter())
+                                .into(display_image)
+                        if (!flagUploaded) {
+                            uploadImageUrlToFirestore(profileUrl!!)
                         }
-                return@async userInfo
+                        log(profileUrl.toString())
+                    } else {
+                        toast(it.exception?.message!!)
+                        log(it.exception?.message.toString())
+                    }
+                }
+                return@async profileUrl
             }.await()
         }
-        return userInfo
+        return profileUrl
     }
 
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -117,30 +165,30 @@ class ProfileActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == Define.ALBUM_REQUEST_CODE) {
                 photoUri = data?.getParcelableArrayListExtra(Define.INTENT_PATH)!!
-                val scaledBitmap = photoUri[0].toScaledBitmap(applicationContext)
+//                val scaledBitmap = photoUri[0].toScaledBitmap(applicationContext)
                 Glide.with(this)
-                        .load(scaledBitmap)
+                        .load(photoUri[0])
                         .apply(RequestOptions()
                                 .placeholder(R.drawable.ic_person)
                                 .error(R.drawable.ic_person)
                                 .fitCenter())
                         .into(display_image)
+                btn_upload.show()
             }
         }
     }
 
-    private fun uploadImageToFirestore(bitmap: Bitmap) {
-        val userMap = mutableMapOf<String, Any>(
-                USER_IMAGE to bitmap.bitmapToString())
-
-        refUser.update(USER_IMAGE, bitmap.bitmapToString())
-                .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        toast("Profile image uploaded successfully")
-                    } else {
-                        toast("Something went wrong...")
-                        toast(it.exception?.message.toString())
-                    }
-                }
+    private fun showProgressBar() {
+        progress_bar_profile.show()
+        linear_layout_profile.setBackgroundColor(Color.GRAY)
+        this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
+
+    private fun hideProgressBar() {
+        progress_bar_profile.hide()
+        linear_layout_profile.setBackgroundColor(Color.WHITE)
+        this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+    }
+
 }
