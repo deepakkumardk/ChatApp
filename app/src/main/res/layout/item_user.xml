@@ -4,13 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_user">
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:background="@drawable/shape_user"
         android:padding="8dp">
 
@@ -18,6 +19,8 @@
             android:id="@+id/item_user_image"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:contentDescription="@string/user_image"
@@ -26,30 +29,48 @@
             app:civ_circle_background_color="@color/colorPrimary"
             tools:src="@drawable/ic_person" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/item_user_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:orientation="vertical">
+            android:layout_toEndOf="@+id/item_user_image"
+            android:layout_toRightOf="@+id/item_user_image"
+            android:maxLines="1"
+            android:textColor="@color/colorBlack"
+            android:textSize="16sp"
+            tools:text="Deepak Kumar" />
 
-            <TextView
-                android:id="@+id/item_user_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:textColor="@color/colorBlack"
-                android:textSize="20sp"
-                tools:text="Deepak Kumar" />
+        <TextView
+            android:id="@+id/item_user_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/item_user_name"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_toEndOf="@+id/item_user_image"
+            android:layout_toRightOf="@+id/item_user_image"
+            android:maxLines="1"
+            android:textColor="@color/colorBlack"
+            android:textSize="12sp"
+            tools:text="deepak@gmail.com" />
 
-            <TextView
-                android:id="@+id/item_user_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:textColor="@color/colorBlack"
-                android:textSize="14sp"
-                tools:text="deepak@gmail.com" />
-        </LinearLayout>
-    </LinearLayout>
+        <TextView
+            android:id="@+id/unread_message_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_toEndOf="@+id/item_user_name"
+            android:layout_toRightOf="@+id/item_user_name"
+            android:gravity="end"
+            android:textColor="@color/colorBlack"
+            android:textSize="14sp"
+            tools:text="2" />
+    </RelativeLayout>
 </android.support.v7.widget.CardView>

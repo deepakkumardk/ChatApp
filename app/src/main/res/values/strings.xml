@@ -18,4 +18,7 @@
     <string name="all_users">All Users</string>
     <string name="item_chat_image">Item Chat Image</string>
     <string name="upload">Upload</string>
+    <string name="copy">Copy</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
 </resources>

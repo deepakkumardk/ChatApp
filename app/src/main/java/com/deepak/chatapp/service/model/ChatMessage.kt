@@ -14,6 +14,12 @@ data class ChatMessage(
         @SerializedName("receiverId")
         @Expose
         var receiverId: String = "",
+        @SerializedName("isRead")
+        @Expose
+        var isRead: Boolean = false,
+        @SerializedName("docId")
+        @Expose
+        var docId: String = "",
         @SerializedName("timestamp_message")
         @Expose
         var sentAt: Timestamp? = null

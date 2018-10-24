@@ -1,10 +1,10 @@
 package com.deepak.chatapp.view.ui
 
+import android.content.ClipData
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,8 +21,11 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.android.synthetic.main.activity_chat.*
+import org.jetbrains.anko.clipboardManager
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
+import org.jetbrains.anko.sdk27.coroutines.onLongClick
+import org.jetbrains.anko.selector
 import org.jetbrains.anko.toast
 
 class ChatActivity : AppCompatActivity() {
@@ -48,10 +51,14 @@ class ChatActivity : AppCompatActivity() {
 
         supportActionBar?.title = toUserName
 
+        val chatOptions = listOf("Copy", "Delete For Me")
+
         //get all the chat messages from the subcollection myChats mapped to the receiverUid user
         refSenderChats = firestore.collection("chat").document(senderUid)
                 .collection("myChats").document(receiverUid)
                 .collection("allChats")
+
+        setMessagesToRead()
 
         val chatQuery = refSenderChats.orderBy("sentAt", Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
@@ -79,6 +86,16 @@ class ChatActivity : AppCompatActivity() {
             override fun onBindViewHolder(holder: ChatViewHolder, position: Int, model: ChatMessage) {
                 holder.itemChatMessage.text = model.message
                 holder.itemChatTimestamp.text = model.sentAt?.timestampToString()
+//                val docId = getItem(position).docId
+
+                holder.itemChatMessage.onLongClick {
+                    selector("Message Options", chatOptions) { _, i ->
+                        when (i) {
+                            0 -> copyText("Chat Message", model.message)
+                            1 -> deleteMessage(model.docId)
+                        }
+                    }
+                }
             }
 
             override fun onChildChanged(type: ChangeEventType, snapshot: DocumentSnapshot, newIndex: Int, oldIndex: Int) {
@@ -98,23 +115,26 @@ class ChatActivity : AppCompatActivity() {
 
         fab_send.onClick {
             val message = message_edit_text.text.toString()
-            if (message.isNotBlank())
-                sendMessage(message)
-            else
-                toast("Message is Blank")
+            when {
+                message.isNotBlank() -> sendMessage(message)
+                else -> toast("Message is Blank")
+            }
         }
 
     }
 
     private fun sendMessage(message: String) {
+        val docId = refSenderChats.document().id
         val chatMapSender = mutableMapOf<String, Any>(
                 MESSAGE to message,
                 SENDER_ID to senderUid,
                 RECEIVER_ID to receiverUid,
+                IS_READ to false,
+                DOC_ID to docId,
                 SENT_AT to Timestamp.now())
 
         //send message to server and add it to the myChats subcollection
-        refSenderChats.document()
+        refSenderChats.document(docId)
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -129,7 +149,7 @@ class ChatActivity : AppCompatActivity() {
                 .collection("myChats").document(senderUid)
                 .collection("allChats")
 
-        refReceiverChats.document()
+        refReceiverChats.document(docId)
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -138,6 +158,34 @@ class ChatActivity : AppCompatActivity() {
                         toast(task.exception?.message.toString())
                     }
                 }
+    }
+
+    private fun deleteMessage(docId: String) {
+        refSenderChats.document(docId)
+                .delete()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        toast("Message deleted Successfully")
+                    } else {
+                        toast(task.exception?.message!!)
+                    }
+                }
+    }
+
+    private fun setMessagesToRead() {
+        refSenderChats.document()
+                .update(IS_READ, true)
+                .addOnCompleteListener {
+                    when {
+                        it.isSuccessful -> log("All message read")
+                        else -> log(it.exception?.message!!)
+                    }
+                }
+    }
+
+    private fun copyText(label: String, text: String) {
+        clipboardManager.primaryClip = ClipData.newPlainText(label, text)
+        toast("Text Copied")
     }
 
     override fun onStart() {
@@ -155,6 +203,3 @@ class ChatActivity : AppCompatActivity() {
         var itemChatTimestamp = view.find<TextView>(R.id.item_chat_message_timestamp)
     }
 }
-
-fun log(message: String) = Log.d("CHATAPP_DEBUG", message)
-

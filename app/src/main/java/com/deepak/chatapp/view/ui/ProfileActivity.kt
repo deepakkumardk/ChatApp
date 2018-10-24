@@ -17,6 +17,7 @@ import com.deepak.chatapp.util.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.sangcomz.fishbun.FishBun
@@ -52,6 +53,11 @@ class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
 
         loadUserInfo()
         display_image.onClick { pickImageFromGallery() }
@@ -190,5 +196,4 @@ class ProfileActivity : AppCompatActivity() {
         linear_layout_profile.setBackgroundColor(Color.WHITE)
         this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
-
 }

@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
 import com.deepak.chatapp.util.*
@@ -30,6 +31,7 @@ class ContactsActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var adapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
+    //    private lateinit var refSenderChats: CollectionReference
     private lateinit var uid: String
     private var name: String? = null
     private var email: String? = null
@@ -41,6 +43,7 @@ class ContactsActivity : AppCompatActivity() {
 
         uid = auth.currentUser?.uid.toString()
         currentUserInfo()
+
         val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
         val options = FirestoreRecyclerOptions.Builder<User>()
                 .setQuery(refContacts, User::class.java)
@@ -56,8 +59,13 @@ class ContactsActivity : AppCompatActivity() {
                 holder.userName.text = model.name
                 holder.userEmail.text = model.email
                 val context = holder.itemView.context
+
                 Glide.with(context)
-                        .load(R.drawable.ic_person)
+                        .load(model.image)
+                        .apply(RequestOptions()
+                                .placeholder(R.drawable.ic_person)
+                                .error(R.drawable.ic_person)
+                                .fitCenter())
                         .into(holder.userImage)
                 holder.itemView.setOnClickListener {
                     val toUserUid = getItem(position).uid

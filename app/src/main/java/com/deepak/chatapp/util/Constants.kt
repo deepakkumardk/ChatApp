@@ -13,6 +13,8 @@ const val TO_USER_EMAIL = "toUserEmail"
 const val MESSAGE = "message"
 const val SENDER_ID = "senderId"
 const val RECEIVER_ID = "receiverId"
+const val IS_READ = "isRead"
+const val DOC_ID = "docId"
 const val SENT_AT = "sentAt"
 //RequestCodes
 const val RC_PICK_IMAGE = 1001
