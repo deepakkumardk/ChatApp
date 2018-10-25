@@ -11,12 +11,11 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
-import com.deepak.chatapp.util.USER_EMAIL
-import com.deepak.chatapp.util.USER_ID
-import com.deepak.chatapp.util.USER_NAME
+import com.deepak.chatapp.util.*
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.SetOptions
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_all_users.*
@@ -33,6 +32,11 @@ class AllUsersActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_users)
+
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
 
         uid = intent?.getStringExtra(USER_ID).toString()
         name = intent?.getStringExtra(USER_NAME).toString()
@@ -61,7 +65,20 @@ class AllUsersActivity : AppCompatActivity() {
                     val addUser = User(model.uid, model.name, model.email)
                     if (getItem(position).uid != uid) {
                         alert("User will be added to your contact list") {
-                            yesButton { addUserToContacts(addUser) }
+                            yesButton {
+                                addUserToContacts(addUser)
+
+                                val toUserUid = getItem(position).uid
+                                val toUserName = getItem(position).name
+                                val toUserEmail = getItem(position).email
+                                val toUserImageUrl = getItem(position).imageUrl
+                                context.startActivity<ChatActivity>(
+                                        USER_ID to uid,
+                                        TO_USER_ID to toUserUid,
+                                        TO_USER_NAME to toUserName,
+                                        TO_USER_EMAIL to toUserEmail,
+                                        TO_USER_IMAGE_URL to toUserImageUrl)
+                            }
                             noButton { it.dismiss() }
                         }.show()
                     } else {

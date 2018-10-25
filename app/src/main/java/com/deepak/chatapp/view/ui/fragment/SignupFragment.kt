@@ -72,7 +72,7 @@ class SignupFragment : Fragment() {
                 USER_ID to uid,
                 USER_NAME to name,
                 USER_EMAIL to email,
-                USER_IMAGE to "")
+                USER_IMAGE_URL to "")
 
         val firestore = FirebaseFirestore.getInstance()
 

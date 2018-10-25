@@ -16,10 +16,7 @@ import com.firebase.ui.common.ChangeEventType
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.activity_chat.*
 import org.jetbrains.anko.clipboardManager
 import org.jetbrains.anko.find
@@ -42,8 +39,12 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        senderUid = intent?.getStringExtra(USER_ID).toString()
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
 
+        senderUid = intent?.getStringExtra(USER_ID).toString()
         receiverUid = intent?.getStringExtra(TO_USER_ID).toString()
         toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
         toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
@@ -60,7 +61,7 @@ class ChatActivity : AppCompatActivity() {
 
         setMessagesToRead()
 
-        val chatQuery = refSenderChats.orderBy("sentAt", Query.Direction.ASCENDING)
+        val chatQuery = refSenderChats.orderBy(SENT_AT, Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
                 .setQuery(chatQuery, ChatMessage::class.java)
                 .build()
@@ -106,6 +107,7 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
+        //use init
         recycler_view_chat.apply {
             hasFixedSize()
             layoutManager = LinearLayoutManager(applicationContext)
@@ -123,15 +125,17 @@ class ChatActivity : AppCompatActivity() {
 
     }
 
+    //send message to both users sender and receiver
     private fun sendMessage(message: String) {
         val docId = refSenderChats.document().id
+        val timestamp = Timestamp.now()
         val chatMapSender = mutableMapOf<String, Any>(
                 MESSAGE to message,
                 SENDER_ID to senderUid,
                 RECEIVER_ID to receiverUid,
                 IS_READ to false,
                 DOC_ID to docId,
-                SENT_AT to Timestamp.now())
+                SENT_AT to timestamp)
 
         //send message to server and add it to the myChats subcollection
         refSenderChats.document(docId)
@@ -152,10 +156,26 @@ class ChatActivity : AppCompatActivity() {
         refReceiverChats.document(docId)
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        log("message sent to receiver")
-                    } else {
-                        toast(task.exception?.message.toString())
+                    when {
+                        task.isSuccessful -> log("message sent to receiver")
+                        else -> toast(task.exception?.message.toString())
+                    }
+                }
+        setLastMessageSentAt(timestamp)
+    }
+
+    //To set the order of the contacts a/c to this, so that recent contact appear at the top
+    private fun setLastMessageSentAt(timestamp: Timestamp) {
+        val refContacts = firestore.collection("contacts")
+                .document(senderUid).collection("myContacts")
+        val map = mutableMapOf<String, Any>(
+                LAST_MESSAGE_SENT_AT to timestamp)
+        refContacts.document(receiverUid)
+                .set(map, SetOptions.merge())
+                .addOnCompleteListener {
+                    when {
+                        it.isSuccessful -> log("set lastMessageSentAt")
+                        else -> log(it.exception?.message!!)
                     }
                 }
     }
@@ -164,14 +184,15 @@ class ChatActivity : AppCompatActivity() {
         refSenderChats.document(docId)
                 .delete()
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        toast("Message deleted Successfully")
-                    } else {
-                        toast(task.exception?.message!!)
+                    when {
+                        task.isSuccessful -> toast("Message deleted Successfully")
+                        else -> toast(task.exception?.message!!)
                     }
                 }
     }
 
+    //Set message to read so that in the contactsActivity we can count the no. of unread
+    //messages and can show it and also send the push notification
     private fun setMessagesToRead() {
         refSenderChats.document()
                 .update(IS_READ, true)

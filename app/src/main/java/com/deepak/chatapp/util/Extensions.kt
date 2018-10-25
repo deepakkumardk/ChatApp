@@ -7,6 +7,8 @@ import android.provider.MediaStore
 import android.support.annotation.IdRes
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.text.format.DateUtils
 import android.util.Base64
 import android.util.Log
@@ -31,6 +33,22 @@ fun FragmentActivity?.replaceFragment(@IdRes id: Int, fragment: Fragment, string
             ?.addToBackStack(string)
             ?.commit()
 }
+
+fun RecyclerView.init(context: Context) {
+    this.apply {
+        hasFixedSize()
+        layoutManager = LinearLayoutManager(context)
+    }
+}
+
+/*fun RequestManager.loadImage(model: Any,view: View) {
+    this.load(model)
+            .apply(RequestOptions()
+                    .placeholder(R.drawable.ic_person)
+                    .error(R.drawable.ic_person)
+                    .fitCenter())
+            .into(holder.userImage)
+}*/
 
 fun Uri?.toScaledBitmap(context: Context): Bitmap? {
     val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, this)

@@ -117,7 +117,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun uploadImageUrlToFirestore(uri: Uri) {
-        refUser.update(USER_IMAGE, uri.toString())
+        refUser.update(USER_IMAGE_URL, uri.toString())
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         sharedPreferences?.edit()?.putBoolean(FLAG_UPLOAD, true)?.apply()

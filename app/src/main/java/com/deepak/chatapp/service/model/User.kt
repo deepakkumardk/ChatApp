@@ -15,5 +15,5 @@ data class User(
         var email: String = "",
         @SerializedName("image")
         @Expose
-        var image: String = ""
+        var imageUrl: String = ""
 )

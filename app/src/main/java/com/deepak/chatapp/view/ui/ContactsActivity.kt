@@ -2,7 +2,6 @@ package com.deepak.chatapp.view.ui
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
@@ -16,6 +15,8 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
@@ -30,26 +31,34 @@ class ContactsActivity : AppCompatActivity() {
             by lazy { FirebaseAuth.getInstance() }
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
-    private lateinit var adapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
+    private lateinit var contactAdapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
     //    private lateinit var refSenderChats: CollectionReference
     private lateinit var uid: String
     private var name: String? = null
     private var email: String? = null
+    private var imageUrl: String? = null
     private var userInfo: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
+
         uid = auth.currentUser?.uid.toString()
         currentUserInfo()
 
         val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
+        //also add received at in on Data changed in Chat Activity
+        val contactsQuery = refContacts.orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<User>()
-                .setQuery(refContacts, User::class.java)
+                .setQuery(contactsQuery, User::class.java)
                 .build()
 
-        adapter = object : FirestoreRecyclerAdapter<User, ContactViewHolder>(options) {
+        contactAdapter = object : FirestoreRecyclerAdapter<User, ContactViewHolder>(options) {
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
                 val view = LayoutInflater.from(parent.context).inflate(R.layout.item_user, parent, false)
                 return ContactViewHolder(view)
@@ -61,7 +70,7 @@ class ContactsActivity : AppCompatActivity() {
                 val context = holder.itemView.context
 
                 Glide.with(context)
-                        .load(model.image)
+                        .load(model.imageUrl)
                         .apply(RequestOptions()
                                 .placeholder(R.drawable.ic_person)
                                 .error(R.drawable.ic_person)
@@ -71,23 +80,24 @@ class ContactsActivity : AppCompatActivity() {
                     val toUserUid = getItem(position).uid
                     val toUserName = getItem(position).name
                     val toUserEmail = getItem(position).email
+                    val toUserImageUrl = getItem(position).imageUrl
                     context.startActivity<ChatActivity>(
                             USER_ID to uid,
                             TO_USER_ID to toUserUid,
                             TO_USER_NAME to toUserName,
-                            TO_USER_EMAIL to toUserEmail)
+                            TO_USER_EMAIL to toUserEmail,
+                            TO_USER_IMAGE_URL to toUserImageUrl)
                 }
             }
         }
 
-        val dividerItemDecoration = DividerItemDecoration(applicationContext, DividerItemDecoration.HORIZONTAL)
         recycler_view_contacts.apply {
             hasFixedSize()
             layoutManager = LinearLayoutManager(applicationContext)
-            addItemDecoration(dividerItemDecoration)
         }
-        recycler_view_contacts.adapter = adapter
-        adapter.notifyDataSetChanged()
+//        recycler_view_contacts.init(applicationContext)
+        recycler_view_contacts.adapter = contactAdapter
+        contactAdapter.notifyDataSetChanged()
 
         fab.onClick {
             startActivity<AllUsersActivity>(
@@ -98,6 +108,7 @@ class ContactsActivity : AppCompatActivity() {
 
     }
 
+    //Get the info of current logged in user
     private fun currentUserInfo(): User? {
         runBlocking {
             async(CommonPool) {
@@ -109,6 +120,7 @@ class ContactsActivity : AppCompatActivity() {
                                 userInfo = it.result?.toObject(User::class.java)
                                 name = userInfo?.name
                                 email = userInfo?.email
+                                imageUrl = userInfo?.imageUrl
                             } else {
                                 toast(it.exception?.message.toString())
                             }
@@ -142,13 +154,13 @@ class ContactsActivity : AppCompatActivity() {
         if (auth.currentUser == null) {
             startActivity(intentFor<MainActivity>().clearTop())
         } else {
-            adapter.startListening()
+            contactAdapter.startListening()
         }
     }
 
     override fun onStop() {
         super.onStop()
-        adapter.stopListening()
+        contactAdapter.stopListening()
     }
 
     internal inner class ContactViewHolder(view: View) : RecyclerView.ViewHolder(view) {
