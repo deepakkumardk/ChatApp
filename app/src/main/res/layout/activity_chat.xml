@@ -8,6 +8,8 @@
     android:background="@color/colorLightGray"
     tools:context=".view.ui.ChatActivity">
 
+    <include layout="@layout/toolbar_chat" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_chat"
         android:layout_width="match_parent"

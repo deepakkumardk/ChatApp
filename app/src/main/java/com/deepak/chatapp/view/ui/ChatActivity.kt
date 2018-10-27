@@ -20,7 +20,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.activity_chat.*
-import kotlinx.android.synthetic.main.item_user.*
+import kotlinx.android.synthetic.main.toolbar_chat.*
 import org.jetbrains.anko.clipboardManager
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
@@ -51,10 +51,9 @@ class ChatActivity : AppCompatActivity() {
         receiverUid = intent?.getStringExtra(TO_USER_ID).toString()
         toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
         toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
-        log("$receiverUid $toUserName $toUserEmail")
 
-        supportActionBar?.title = toUserName
-//        loadProfileImage()
+        initToolbar()
+        loadProfileImage()
 
         val chatOptions = listOf("Copy", "Delete For Me")
 
@@ -110,7 +109,6 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
-        //use init
         recycler_view_chat.init(applicationContext)
         recycler_view_chat.adapter = adapter
         adapter.notifyDataSetChanged()
@@ -118,11 +116,23 @@ class ChatActivity : AppCompatActivity() {
         fab_send.onClick {
             val message = message_edit_text.text.toString()
             when {
-                message.isNotBlank() -> sendMessage(message)
+                message.isNotBlank() -> {
+                    message_edit_text.setText("")
+                    sendMessage(message)
+                }
                 else -> toast("Message is Blank")
             }
         }
 
+    }
+
+    private fun initToolbar() {
+        setSupportActionBar(toolbar_chat)
+        toolbar_title.text = toUserName
+        supportActionBar?.title = ""
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
     }
 
     private fun loadProfileImage() {
@@ -138,7 +148,8 @@ class ChatActivity : AppCompatActivity() {
                                         .placeholder(R.drawable.ic_person)
                                         .error(R.drawable.ic_person)
                                         .fitCenter())
-                                .into(item_user_image)
+                                .into(user_display_image_chat)
+                        user_last_seen.text = userInfo?.isOnline
                     }
                 }
     }
@@ -161,7 +172,6 @@ class ChatActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         log("message sent to user")
-                        message_edit_text.setText("")
                     } else {
                         toast(task.exception?.message.toString())
                     }

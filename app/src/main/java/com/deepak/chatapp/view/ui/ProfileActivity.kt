@@ -23,6 +23,7 @@ import com.sangcomz.fishbun.FishBun
 import com.sangcomz.fishbun.adapter.image.impl.GlideAdapter
 import com.sangcomz.fishbun.define.Define
 import kotlinx.android.synthetic.main.activity_profile.*
+import kotlinx.android.synthetic.main.toolbar.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -54,6 +55,8 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
+        initToolbar()
+
         val setting = FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build()
@@ -75,6 +78,13 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun initToolbar() {
+        setSupportActionBar(toolbar)
+        supportActionBar?.title = "Profile"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
+    }
+
     private fun logout() {
         auth.signOut()
         sharedPreferences.set(FLAG_UPLOAD, false)
@@ -89,7 +99,7 @@ class ProfileActivity : AppCompatActivity() {
         imageUrl = intent?.getStringExtra(USER_IMAGE_URL).toString()
 
         flagUploaded = sharedPreferences?.get(FLAG_UPLOAD, false)!!
-        toast(flagUploaded.toString())
+//        toast(flagUploaded.toString())
         refUser = firestore.collection("users").document(uid.toString())
         refProfile = storageRef.child("profile/${uid!!}")
 

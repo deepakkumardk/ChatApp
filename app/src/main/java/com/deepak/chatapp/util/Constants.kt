@@ -5,6 +5,7 @@ const val USER_ID = "uid"
 const val USER_NAME = "name"
 const val USER_EMAIL = "email"
 const val USER_IMAGE_URL = "imageUrl"
+const val IS_ONLINE = "isOnline"
 //Receiver's constants
 const val TO_USER_ID = "toUserUid"
 const val TO_USER_NAME = "toUserName"

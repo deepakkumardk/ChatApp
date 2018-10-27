@@ -9,6 +9,8 @@
     android:id="@+id/linear_layout_profile"
     tools:context=".view.ui.ProfileActivity">
 
+    <include layout="@layout/toolbar" />
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/display_image"
         android:layout_width="match_parent"

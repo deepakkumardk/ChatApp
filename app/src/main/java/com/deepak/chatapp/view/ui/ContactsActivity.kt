@@ -18,6 +18,7 @@ import com.google.firebase.firestore.*
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
 import kotlinx.android.synthetic.main.item_user.*
+import kotlinx.android.synthetic.main.toolbar.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -30,7 +31,7 @@ class ContactsActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var contactAdapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
-    private lateinit var refSenderChats: DocumentReference
+    private lateinit var refUsers: DocumentReference
     private lateinit var uid: String
     private var name: String? = null
     private var email: String? = null
@@ -41,6 +42,8 @@ class ContactsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
+        initToolbar()
+
         val setting = FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build()
@@ -48,6 +51,7 @@ class ContactsActivity : AppCompatActivity() {
 
         uid = auth.currentUser?.uid.toString()
         currentUserInfo()
+        setOnlineField()
 
         val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
         val contactsQuery = refContacts.orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
@@ -67,10 +71,10 @@ class ContactsActivity : AppCompatActivity() {
                 val context = holder.itemView.context
 
                 //get the images of all users from imageUrl
-                refSenderChats = firestore.collection("users")
+                refUsers = firestore.collection("users")
                         .document(model.uid)
 
-                refSenderChats.get(Source.CACHE)
+                refUsers.get(Source.CACHE)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
                                 val itemUser = it.result?.toObject(User::class.java)
@@ -80,7 +84,6 @@ class ContactsActivity : AppCompatActivity() {
                             }
                         }
 
-
                 Glide.with(context)
                         .load(model.imageUrl)
                         .apply(RequestOptions()
@@ -88,6 +91,7 @@ class ContactsActivity : AppCompatActivity() {
                                 .error(R.drawable.ic_person)
                                 .fitCenter())
                         .into(holder.userImage)
+
                 holder.itemView.setOnClickListener {
                     val toUserUid = getItem(position).uid
                     val toUserName = getItem(position).name
@@ -114,6 +118,24 @@ class ContactsActivity : AppCompatActivity() {
                     USER_EMAIL to email)
         }
 
+    }
+
+    private fun initToolbar() {
+        setSupportActionBar(toolbar)
+        supportActionBar?.title = "Contacts"
+    }
+
+    private fun setOnlineField() {
+        val isOnline = mutableMapOf<String, Any>(IS_ONLINE to "Online")
+        firestore.collection("users").document(uid)
+                .set(isOnline, SetOptions.merge())
+//                .update(IS_ONLINE, "Online")
+                .addOnCompleteListener {
+                    when {
+                        it.isSuccessful -> log("User is Online")
+                        else -> log(it.exception?.message!!)
+                    }
+                }
     }
 
     //Get the info of current logged in user
@@ -170,6 +192,20 @@ class ContactsActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         contactAdapter.stopListening()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val isOnline = mutableMapOf<String, Any>(IS_ONLINE to "Offline")
+        firestore.collection("users").document(uid)
+                .set(isOnline, SetOptions.merge())
+//                .update(IS_ONLINE, "Offline")
+                .addOnCompleteListener {
+                    when {
+                        it.isSuccessful -> log("User is Offline")
+                        else -> log(it.exception?.message!!)
+                    }
+                }
     }
 
     internal inner class ContactViewHolder(view: View) : RecyclerView.ViewHolder(view) {

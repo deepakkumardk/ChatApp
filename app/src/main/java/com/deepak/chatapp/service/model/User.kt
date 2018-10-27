@@ -13,7 +13,10 @@ data class User(
         @SerializedName("email")
         @Expose
         var email: String = "",
-        @SerializedName("image")
+        @SerializedName("imageUrl")
         @Expose
-        var imageUrl: String = ""
+        var imageUrl: String = "",
+        @SerializedName("isOnline")
+        @Expose
+        var isOnline: String = ""
 )

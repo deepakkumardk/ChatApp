@@ -7,10 +7,13 @@
     android:background="@color/colorLightGray"
     tools:context=".view.ui.ContactsActivity">
 
+    <include layout="@layout/toolbar" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_contacts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         tools:listitem="@layout/item_user" />
 
     <android.support.design.widget.FloatingActionButton
