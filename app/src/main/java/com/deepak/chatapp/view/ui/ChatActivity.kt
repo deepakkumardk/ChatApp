@@ -3,14 +3,16 @@ package com.deepak.chatapp.view.ui
 import android.content.ClipData
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.ChatMessage
+import com.deepak.chatapp.service.model.User
 import com.deepak.chatapp.util.*
 import com.firebase.ui.common.ChangeEventType
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
@@ -18,6 +20,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.activity_chat.*
+import kotlinx.android.synthetic.main.item_user.*
 import org.jetbrains.anko.clipboardManager
 import org.jetbrains.anko.find
 import org.jetbrains.anko.sdk27.coroutines.onClick
@@ -51,6 +54,7 @@ class ChatActivity : AppCompatActivity() {
         log("$receiverUid $toUserName $toUserEmail")
 
         supportActionBar?.title = toUserName
+//        loadProfileImage()
 
         val chatOptions = listOf("Copy", "Delete For Me")
 
@@ -87,7 +91,6 @@ class ChatActivity : AppCompatActivity() {
             override fun onBindViewHolder(holder: ChatViewHolder, position: Int, model: ChatMessage) {
                 holder.itemChatMessage.text = model.message
                 holder.itemChatTimestamp.text = model.sentAt?.timestampToString()
-//                val docId = getItem(position).docId
 
                 holder.itemChatMessage.onLongClick {
                     selector("Message Options", chatOptions) { _, i ->
@@ -108,10 +111,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         //use init
-        recycler_view_chat.apply {
-            hasFixedSize()
-            layoutManager = LinearLayoutManager(applicationContext)
-        }
+        recycler_view_chat.init(applicationContext)
         recycler_view_chat.adapter = adapter
         adapter.notifyDataSetChanged()
 
@@ -123,6 +123,24 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun loadProfileImage() {
+        firestore.collection("users")
+                .document(receiverUid)
+                .get(Source.CACHE)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        val userInfo = it.result?.toObject(User::class.java)
+                        Glide.with(this@ChatActivity)
+                                .load(userInfo?.imageUrl)
+                                .apply(RequestOptions()
+                                        .placeholder(R.drawable.ic_person)
+                                        .error(R.drawable.ic_person)
+                                        .fitCenter())
+                                .into(item_user_image)
+                    }
+                }
     }
 
     //send message to both users sender and receiver

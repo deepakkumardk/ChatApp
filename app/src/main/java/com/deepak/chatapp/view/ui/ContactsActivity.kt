@@ -1,8 +1,8 @@
 package com.deepak.chatapp.view.ui
 
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.TextView
@@ -14,12 +14,10 @@ import com.deepak.chatapp.util.*
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.*
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
+import kotlinx.android.synthetic.main.item_user.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -32,7 +30,7 @@ class ContactsActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var contactAdapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
-    //    private lateinit var refSenderChats: CollectionReference
+    private lateinit var refSenderChats: DocumentReference
     private lateinit var uid: String
     private var name: String? = null
     private var email: String? = null
@@ -52,7 +50,6 @@ class ContactsActivity : AppCompatActivity() {
         currentUserInfo()
 
         val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
-        //also add received at in on Data changed in Chat Activity
         val contactsQuery = refContacts.orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<User>()
                 .setQuery(contactsQuery, User::class.java)
@@ -68,6 +65,21 @@ class ContactsActivity : AppCompatActivity() {
                 holder.userName.text = model.name
                 holder.userEmail.text = model.email
                 val context = holder.itemView.context
+
+                //get the images of all users from imageUrl
+                refSenderChats = firestore.collection("users")
+                        .document(model.uid)
+
+                refSenderChats.get(Source.CACHE)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                val itemUser = it.result?.toObject(User::class.java)
+                                val url = Uri.parse(itemUser?.imageUrl)
+                                Glide.with(this@ContactsActivity)
+                                        .loadImage(url, item_user_image, R.drawable.ic_person)
+                            }
+                        }
+
 
                 Glide.with(context)
                         .load(model.imageUrl)
@@ -91,11 +103,7 @@ class ContactsActivity : AppCompatActivity() {
             }
         }
 
-        recycler_view_contacts.apply {
-            hasFixedSize()
-            layoutManager = LinearLayoutManager(applicationContext)
-        }
-//        recycler_view_contacts.init(applicationContext)
+        recycler_view_contacts.init(applicationContext)
         recycler_view_contacts.adapter = contactAdapter
         contactAdapter.notifyDataSetChanged()
 
@@ -142,7 +150,8 @@ class ContactsActivity : AppCompatActivity() {
                 startActivity<ProfileActivity>(
                         USER_ID to uid,
                         USER_NAME to name,
-                        USER_EMAIL to email)
+                        USER_EMAIL to email,
+                        USER_IMAGE_URL to imageUrl)
                 true
             }
             else -> super.onOptionsItemSelected(item)

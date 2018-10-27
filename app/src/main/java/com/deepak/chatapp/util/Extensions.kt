@@ -1,9 +1,11 @@
 package com.deepak.chatapp.util
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.annotation.DrawableRes
 import android.support.annotation.IdRes
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
@@ -13,6 +15,9 @@ import android.text.format.DateUtils
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.Timestamp
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
@@ -41,14 +46,43 @@ fun RecyclerView.init(context: Context) {
     }
 }
 
-/*fun RequestManager.loadImage(model: Any,view: View) {
+fun SharedPreferences?.set(key: String, value: Any) {
+    val editor = this?.edit()
+    when (value) {
+        is Boolean -> editor?.putBoolean(key, value)
+        is Int -> editor?.putInt(key, value)
+        is Long -> editor?.putLong(key, value)
+        is String -> editor?.putString(key, value)
+        else -> throw UnsupportedOperationException("Not yet implemented")
+    }
+    editor?.apply()
+}
+
+inline fun <reified T : Any> SharedPreferences?.get(key: String, defValue: Any): T? {
+    return when (defValue) {
+        is Boolean -> this?.getBoolean(key, defValue) as T
+        is Int -> this?.getInt(key, defValue) as T
+        is Long -> this?.getLong(key, defValue) as T
+        is String -> this?.getString(key, defValue) as T
+        else -> throw UnsupportedOperationException("Not yet implemented")
+    }
+}
+
+fun RequestManager.loadImage(model: Any, view: ImageView) {
+    this.load(model)
+            .apply(RequestOptions().fitCenter())
+            .into(view)
+}
+
+fun RequestManager.loadImage(model: Any, view: ImageView,
+                             @DrawableRes resId: Int) {
     this.load(model)
             .apply(RequestOptions()
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(resId)
+                    .error(resId)
                     .fitCenter())
-            .into(holder.userImage)
-}*/
+            .into(view)
+}
 
 fun Uri?.toScaledBitmap(context: Context): Bitmap? {
     val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, this)

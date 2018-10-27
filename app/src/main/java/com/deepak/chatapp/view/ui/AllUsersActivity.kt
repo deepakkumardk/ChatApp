@@ -2,7 +2,6 @@ package com.deepak.chatapp.view.ui
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -88,10 +87,7 @@ class AllUsersActivity : AppCompatActivity() {
             }
         }
 
-        recycler_view_users.apply {
-            hasFixedSize()
-            layoutManager = LinearLayoutManager(applicationContext)
-        }
+        recycler_view_users.init(applicationContext)
         recycler_view_users.adapter = adapter
         adapter.notifyDataSetChanged()
     }

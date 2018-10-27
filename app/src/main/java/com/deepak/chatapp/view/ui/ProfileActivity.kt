@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.util.*
 import com.google.firebase.auth.FirebaseAuth
@@ -44,8 +43,9 @@ class ProfileActivity : AppCompatActivity() {
     private var uid: String? = null
     private var name: String? = null
     private var email: String? = null
+    private var imageUrl: String? = null
     private lateinit var refUser: DocumentReference
-    private lateinit var profileRef: StorageReference
+    private lateinit var refProfile: StorageReference
     private var photoUri = ArrayList<Uri>()
     private var profileUrl: Uri? = null
     private var flagUploaded: Boolean = false
@@ -62,7 +62,7 @@ class ProfileActivity : AppCompatActivity() {
         loadUserInfo()
         display_image.onClick { pickImageFromGallery() }
         btn_upload.onClick {
-            sharedPreferences?.edit()?.putBoolean(FLAG_UPLOAD, false)?.apply()
+            sharedPreferences.set(FLAG_UPLOAD, false)
             uploadProfileImageToStorage()
         }
         btn_logout.onClick { _ ->
@@ -77,6 +77,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun logout() {
         auth.signOut()
+        sharedPreferences.set(FLAG_UPLOAD, false)
         finish()
         startActivity(intentFor<MainActivity>().clearTop())
     }
@@ -85,15 +86,15 @@ class ProfileActivity : AppCompatActivity() {
         uid = intent?.getStringExtra(USER_ID).toString()
         name = intent?.getStringExtra(USER_NAME).toString()
         email = intent?.getStringExtra(USER_EMAIL).toString()
+        imageUrl = intent?.getStringExtra(USER_IMAGE_URL).toString()
 
-        flagUploaded = sharedPreferences?.getBoolean(FLAG_UPLOAD, false)!!
+        flagUploaded = sharedPreferences?.get(FLAG_UPLOAD, false)!!
+        toast(flagUploaded.toString())
         refUser = firestore.collection("users").document(uid.toString())
-        profileRef = storageRef.child("profile/${uid!!}")
+        refProfile = storageRef.child("profile/${uid!!}")
 
         Glide.with(this)
-                .load(R.drawable.ic_person)
-                .apply(RequestOptions().fitCenter())
-                .into(display_image)
+                .loadImage(R.drawable.ic_person, display_image)
 
         getImageUrl()
         display_name.text = name
@@ -103,7 +104,7 @@ class ProfileActivity : AppCompatActivity() {
     private fun uploadProfileImageToStorage() {
         showProgressBar()
 //        val compressedUri = photoUri[0].toScaledBitmap(applicationContext)?.toUri()!!
-        profileRef.putFile(photoUri[0])
+        refProfile.putFile(photoUri[0])
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         hideProgressBar()
@@ -120,7 +121,7 @@ class ProfileActivity : AppCompatActivity() {
         refUser.update(USER_IMAGE_URL, uri.toString())
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
-                        sharedPreferences?.edit()?.putBoolean(FLAG_UPLOAD, true)?.apply()
+                        sharedPreferences.set(FLAG_UPLOAD, false)
                         log("Profile imageUrl uploaded successfully")
                     } else {
                         toast("Something went wrong...")
@@ -132,16 +133,11 @@ class ProfileActivity : AppCompatActivity() {
     private fun getImageUrl(): Uri? {
         runBlocking {
             async(CommonPool) {
-                profileRef.downloadUrl.addOnCompleteListener {
+                refProfile.downloadUrl.addOnCompleteListener {
                     if (it.isSuccessful) {
                         profileUrl = it.result
                         Glide.with(this@ProfileActivity)
-                                .load(profileUrl)
-                                .apply(RequestOptions()
-                                        .placeholder(R.drawable.ic_person)
-                                        .error(R.drawable.ic_person)
-                                        .fitCenter())
-                                .into(display_image)
+                                .loadImage(profileUrl!!, display_image, R.drawable.ic_person)
                         if (!flagUploaded) {
                             uploadImageUrlToFirestore(profileUrl!!)
                         }
@@ -173,12 +169,7 @@ class ProfileActivity : AppCompatActivity() {
                 photoUri = data?.getParcelableArrayListExtra(Define.INTENT_PATH)!!
 //                val scaledBitmap = photoUri[0].toScaledBitmap(applicationContext)
                 Glide.with(this)
-                        .load(photoUri[0])
-                        .apply(RequestOptions()
-                                .placeholder(R.drawable.ic_person)
-                                .error(R.drawable.ic_person)
-                                .fitCenter())
-                        .into(display_image)
+                        .loadImage(photoUri[0], display_image, R.drawable.ic_person)
                 btn_upload.show()
             }
         }
