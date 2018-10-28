@@ -1,5 +1,9 @@
 package com.deepak.chatapp.util
 
+/**
+ * App constants
+ */
+
 //User model constants
 const val USER_ID = "uid"
 const val USER_NAME = "name"

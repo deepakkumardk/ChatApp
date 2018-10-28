@@ -23,6 +23,9 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Extension functions Super Kotlin
+ */
 fun View.show() {
     this.visibility = View.VISIBLE
 }

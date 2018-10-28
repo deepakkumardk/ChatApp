@@ -24,7 +24,6 @@
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:contentDescription="@string/user_image"
-            android:src="@drawable/ic_send"
             app:civ_border_color="@color/colorPrimary"
             app:civ_circle_background_color="@color/colorPrimary"
             tools:src="@drawable/ic_person" />

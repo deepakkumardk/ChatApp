@@ -6,6 +6,9 @@ import android.util.Log
 import com.deepak.chatapp.R
 import com.deepak.chatapp.view.ui.fragment.MainFragment
 
+/**
+ * MainActivity is served with the help of fragments
+ */
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

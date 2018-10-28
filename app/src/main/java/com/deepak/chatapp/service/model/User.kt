@@ -3,6 +3,9 @@ package com.deepak.chatapp.service.model
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Data Model class of Users
+ */
 data class User(
         @SerializedName("uid")
         @Expose

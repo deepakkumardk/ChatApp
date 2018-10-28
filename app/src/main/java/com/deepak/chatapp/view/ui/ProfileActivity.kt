@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.sangcomz.fishbun.FishBun
@@ -31,6 +32,9 @@ import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import permissions.dispatcher.NeedsPermission
 
+/**
+ * Show the profile of the user including name,email,profile picture and Logout btn
+ */
 class ProfileActivity : AppCompatActivity() {
     private val auth: FirebaseAuth
             by lazy { FirebaseAuth.getInstance() }
@@ -49,19 +53,14 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var refProfile: StorageReference
     private var photoUri = ArrayList<Uri>()
     private var profileUrl: Uri? = null
-    private var flagUploaded: Boolean = false
+    private var flagUploaded: Boolean = false   //For Firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
+        init()
         initToolbar()
-
-        val setting = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
-        firestore.firestoreSettings = setting
-
         loadUserInfo()
         display_image.onClick { pickImageFromGallery() }
         btn_upload.onClick {
@@ -85,6 +84,13 @@ class ProfileActivity : AppCompatActivity() {
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
     }
 
+    private fun init() {
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
+    }
+
     private fun logout() {
         auth.signOut()
         sharedPreferences.set(FLAG_UPLOAD, false)
@@ -96,21 +102,22 @@ class ProfileActivity : AppCompatActivity() {
         uid = intent?.getStringExtra(USER_ID).toString()
         name = intent?.getStringExtra(USER_NAME).toString()
         email = intent?.getStringExtra(USER_EMAIL).toString()
-        imageUrl = intent?.getStringExtra(USER_IMAGE_URL).toString()
 
         flagUploaded = sharedPreferences?.get(FLAG_UPLOAD, false)!!
-//        toast(flagUploaded.toString())
         refUser = firestore.collection("users").document(uid.toString())
         refProfile = storageRef.child("profile/${uid!!}")
 
         Glide.with(this)
-                .loadImage(R.drawable.ic_person, display_image)
+                .loadImage(imageUrl!!, display_image, R.drawable.ic_person)
 
         getImageUrl()
         display_name.text = name
         display_email.text = email
     }
 
+    /**
+     * Upload the profile image to the Firebase Storage
+     */
     private fun uploadProfileImageToStorage() {
         showProgressBar()
 //        val compressedUri = photoUri[0].toScaledBitmap(applicationContext)?.toUri()!!
@@ -121,17 +128,21 @@ class ProfileActivity : AppCompatActivity() {
                         toast("Profile image uploaded successfully")
                     } else {
                         toast("Something went wrong...")
-                        toast(it.exception?.message.toString())
                         log(it.exception?.message.toString())
                     }
                 }
     }
 
+    /**
+     * Upload the imageUrl that is fetched from Database storage to the firestore
+     * in the "users" collection
+     */
     private fun uploadImageUrlToFirestore(uri: Uri) {
-        refUser.update(USER_IMAGE_URL, uri.toString())
+        val uriMap = mutableMapOf<String, Any>(USER_IMAGE_URL to uri.toString())
+        refUser.set(uriMap, SetOptions.merge())
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
-                        sharedPreferences.set(FLAG_UPLOAD, false)
+                        sharedPreferences.set(FLAG_UPLOAD, true)
                         log("Profile imageUrl uploaded successfully")
                     } else {
                         toast("Something went wrong...")
@@ -140,6 +151,10 @@ class ProfileActivity : AppCompatActivity() {
                 }
     }
 
+    /**
+     * Fetch the imageUrl from the Database Storage as a Url and load this url into the imageView.
+     * Using the shared preference check if the url is uploaded to firestore or not.
+     */
     private fun getImageUrl(): Uri? {
         runBlocking {
             async(CommonPool) {
@@ -153,7 +168,7 @@ class ProfileActivity : AppCompatActivity() {
                         }
                         log(profileUrl.toString())
                     } else {
-                        toast(it.exception?.message!!)
+                        toast("Something went wrong...")
                         log(it.exception?.message.toString())
                     }
                 }

@@ -10,6 +10,9 @@ import com.deepak.chatapp.util.replaceFragment
 import kotlinx.android.synthetic.main.fragment_main.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 
+/**
+ * Show the App logo and GetStarted btn
+ */
 class MainFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

@@ -7,7 +7,6 @@ import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.User
 import com.deepak.chatapp.util.*
@@ -17,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
-import kotlinx.android.synthetic.main.item_user.*
 import kotlinx.android.synthetic.main.toolbar.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -25,11 +23,15 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 
+/**
+ * This activity will show all the contacts of the user
+ */
 class ContactsActivity : AppCompatActivity() {
     private val auth: FirebaseAuth
             by lazy { FirebaseAuth.getInstance() }
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
+
     private lateinit var contactAdapter: FirestoreRecyclerAdapter<User, ContactViewHolder>
     private lateinit var refUsers: DocumentReference
     private lateinit var uid: String
@@ -53,8 +55,9 @@ class ContactsActivity : AppCompatActivity() {
         currentUserInfo()
         setOnlineField()
 
-        val refContacts = firestore.collection("contacts").document(uid).collection("myContacts")
-        val contactsQuery = refContacts.orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
+        val contactsQuery = firestore.collection("contacts")
+                .document(uid).collection("myContacts")
+                .orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<User>()
                 .setQuery(contactsQuery, User::class.java)
                 .build()
@@ -70,9 +73,8 @@ class ContactsActivity : AppCompatActivity() {
                 holder.userEmail.text = model.email
                 val context = holder.itemView.context
 
-                //get the images of all users from imageUrl
-                refUsers = firestore.collection("users")
-                        .document(model.uid)
+                //get the images of all users from imageUrl field
+                refUsers = firestore.collection("users").document(model.uid)
 
                 refUsers.get(Source.CACHE)
                         .addOnCompleteListener {
@@ -80,17 +82,12 @@ class ContactsActivity : AppCompatActivity() {
                                 val itemUser = it.result?.toObject(User::class.java)
                                 val url = Uri.parse(itemUser?.imageUrl)
                                 Glide.with(this@ContactsActivity)
-                                        .loadImage(url, item_user_image, R.drawable.ic_person)
+                                        .loadImage(url, holder.userImage, R.drawable.ic_person)
+                                toast("image loaded with Glide refUsers")
+                            } else {
+                                log(it.exception?.message!!)
                             }
                         }
-
-                Glide.with(context)
-                        .load(model.imageUrl)
-                        .apply(RequestOptions()
-                                .placeholder(R.drawable.ic_person)
-                                .error(R.drawable.ic_person)
-                                .fitCenter())
-                        .into(holder.userImage)
 
                 holder.itemView.setOnClickListener {
                     val toUserUid = getItem(position).uid
@@ -115,7 +112,8 @@ class ContactsActivity : AppCompatActivity() {
             startActivity<AllUsersActivity>(
                     USER_ID to uid,
                     USER_NAME to name,
-                    USER_EMAIL to email)
+                    USER_EMAIL to email,
+                    TO_USER_IMAGE_URL to imageUrl)
         }
 
     }
@@ -125,11 +123,14 @@ class ContactsActivity : AppCompatActivity() {
         supportActionBar?.title = "Contacts"
     }
 
+    /**
+     * Set the IS_ONLINE field to Online as the users start the app
+     * to show that the user is online or not
+     */
     private fun setOnlineField() {
         val isOnline = mutableMapOf<String, Any>(IS_ONLINE to "Online")
         firestore.collection("users").document(uid)
                 .set(isOnline, SetOptions.merge())
-//                .update(IS_ONLINE, "Online")
                 .addOnCompleteListener {
                     when {
                         it.isSuccessful -> log("User is Online")
@@ -138,7 +139,9 @@ class ContactsActivity : AppCompatActivity() {
                 }
     }
 
-    //Get the info of current logged in user
+    /**
+     * Get all the fields from firestore of current logged in user from the "users" collection
+     */
     private fun currentUserInfo(): User? {
         runBlocking {
             async(CommonPool) {
@@ -166,6 +169,7 @@ class ContactsActivity : AppCompatActivity() {
         return true
     }
 
+    //check if imageUrl is working?
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.action_profile -> {
@@ -194,18 +198,21 @@ class ContactsActivity : AppCompatActivity() {
         contactAdapter.stopListening()
     }
 
+    /**
+     * Set the IS_ONLINE field to offline as the users start the app
+     * to show that the user is online or not
+     */
     override fun onDestroy() {
-        super.onDestroy()
         val isOnline = mutableMapOf<String, Any>(IS_ONLINE to "Offline")
         firestore.collection("users").document(uid)
                 .set(isOnline, SetOptions.merge())
-//                .update(IS_ONLINE, "Offline")
                 .addOnCompleteListener {
                     when {
                         it.isSuccessful -> log("User is Offline")
                         else -> log(it.exception?.message!!)
                     }
                 }
+        super.onDestroy()
     }
 
     internal inner class ContactViewHolder(view: View) : RecyclerView.ViewHolder(view) {

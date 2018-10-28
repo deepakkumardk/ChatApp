@@ -20,8 +20,14 @@ import org.jetbrains.anko.support.v4.intentFor
 import org.jetbrains.anko.support.v4.toast
 import org.jetbrains.anko.yesButton
 
+/**
+ * The signup interface for the user
+ */
 class SignupFragment : Fragment() {
-    private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+    private val auth: FirebaseAuth
+            by lazy { FirebaseAuth.getInstance() }
+    private val firestore: FirebaseFirestore
+            by lazy { FirebaseFirestore.getInstance() }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -40,6 +46,9 @@ class SignupFragment : Fragment() {
 
     }
 
+    /**
+     * SignUp the user with the FirebaseAuth
+     */
     private fun signupUser() {
         val name = name_signup.text.toString()
         val email = email_signup.text.toString()
@@ -65,9 +74,11 @@ class SignupFragment : Fragment() {
         }
     }
 
+    /**
+     * Insert the basic fields to the firestore "user" collection
+     */
     private fun insertUserIntoFirestore(name: String, email: String) {
-        val currentUser = auth.currentUser
-        val uid = currentUser?.uid.toString()
+        val uid = auth.currentUser?.uid.toString()
         val user = mutableMapOf<String, Any>(
                 USER_ID to uid,
                 USER_NAME to name,
@@ -75,17 +86,13 @@ class SignupFragment : Fragment() {
                 USER_IMAGE_URL to "",
                 IS_ONLINE to "")
 
-        val firestore = FirebaseFirestore.getInstance()
-
         firestore.collection("users")
                 .document(uid)
                 .set(user)
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        toast("User added to firestore")
-
-                    } else {
-                        toast(task.exception?.message.toString())
+                    when {
+                        task.isSuccessful -> toast("User added to firestore")
+                        else -> toast(task.exception?.message.toString())
                     }
                 }
     }

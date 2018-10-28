@@ -4,6 +4,9 @@ import com.google.firebase.Timestamp
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Data Model class for messages that the user will send
+ */
 data class ChatMessage(
         @SerializedName("message")
         @Expose

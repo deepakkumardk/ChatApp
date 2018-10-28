@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.deepak.chatapp.R
 import com.deepak.chatapp.service.model.ChatMessage
 import com.deepak.chatapp.service.model.User
@@ -28,6 +27,10 @@ import org.jetbrains.anko.sdk27.coroutines.onLongClick
 import org.jetbrains.anko.selector
 import org.jetbrains.anko.toast
 
+/**
+ * The ChatActivity from which the user will chat to the another user
+ * using the firestore adapter
+ */
 class ChatActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
@@ -42,16 +45,7 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        val setting = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
-        firestore.firestoreSettings = setting
-
-        senderUid = intent?.getStringExtra(USER_ID).toString()
-        receiverUid = intent?.getStringExtra(TO_USER_ID).toString()
-        toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
-        toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
-
+        init()
         initToolbar()
         loadProfileImage()
 
@@ -126,6 +120,19 @@ class ChatActivity : AppCompatActivity() {
 
     }
 
+    private fun init() {
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
+
+        senderUid = intent?.getStringExtra(USER_ID).toString()
+        receiverUid = intent?.getStringExtra(TO_USER_ID).toString()
+        toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
+        toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
+    }
+
+
     private fun initToolbar() {
         setSupportActionBar(toolbar_chat)
         toolbar_title.text = toUserName
@@ -135,6 +142,9 @@ class ChatActivity : AppCompatActivity() {
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
     }
 
+    /**
+     * Load the profile image into the ImageView in the Toolbar
+     */
     private fun loadProfileImage() {
         firestore.collection("users")
                 .document(receiverUid)
@@ -142,19 +152,17 @@ class ChatActivity : AppCompatActivity() {
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         val userInfo = it.result?.toObject(User::class.java)
-                        Glide.with(this@ChatActivity)
-                                .load(userInfo?.imageUrl)
-                                .apply(RequestOptions()
-                                        .placeholder(R.drawable.ic_person)
-                                        .error(R.drawable.ic_person)
-                                        .fitCenter())
-                                .into(user_display_image_chat)
                         user_last_seen.text = userInfo?.isOnline
+                        Glide.with(this@ChatActivity)
+                                .loadImage(userInfo?.imageUrl!!, user_display_image_chat, R.drawable.ic_person)
                     }
                 }
     }
 
-    //send message to both users sender and receiver
+    /**
+     * send message to the receiver.
+     * The message map will be sent to the both sender and receiver's chat subCollection
+     */
     private fun sendMessage(message: String) {
         val docId = refSenderChats.document().id
         val timestamp = Timestamp.now()
@@ -166,14 +174,13 @@ class ChatActivity : AppCompatActivity() {
                 DOC_ID to docId,
                 SENT_AT to timestamp)
 
-        //send message to server and add it to the myChats subcollection
+        //send message to sender and add it to the myChats subcollection
         refSenderChats.document(docId)
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        log("message sent to user")
-                    } else {
-                        toast(task.exception?.message.toString())
+                    when {
+                        task.isSuccessful -> log("message sent to user")
+                        else -> toast(task.exception?.message.toString())
                     }
                 }
 
@@ -181,6 +188,7 @@ class ChatActivity : AppCompatActivity() {
                 .collection("myChats").document(senderUid)
                 .collection("allChats")
 
+        //send message to receiver and add it to the myChats subcollection
         refReceiverChats.document(docId)
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
@@ -192,12 +200,15 @@ class ChatActivity : AppCompatActivity() {
         setLastMessageSentAt(timestamp)
     }
 
-    //To set the order of the contacts a/c to this, so that recent contact appear at the top
+    /**
+     * LAST_MESSAGE_SENT_AT field in the subCollection myContacts will be used to det. the
+     * recent chat and so the contact list can be order by this field
+     */
     private fun setLastMessageSentAt(timestamp: Timestamp) {
         val refContacts = firestore.collection("contacts")
                 .document(senderUid).collection("myContacts")
-        val map = mutableMapOf<String, Any>(
-                LAST_MESSAGE_SENT_AT to timestamp)
+        val map = mutableMapOf<String, Any>(LAST_MESSAGE_SENT_AT to timestamp)
+
         refContacts.document(receiverUid)
                 .set(map, SetOptions.merge())
                 .addOnCompleteListener {
@@ -208,6 +219,10 @@ class ChatActivity : AppCompatActivity() {
                 }
     }
 
+    /**
+     * Delete the message only for the current logged in  user
+     * The message will be deleted using the DOC_ID field
+     */
     private fun deleteMessage(docId: String) {
         refSenderChats.document(docId)
                 .delete()
@@ -219,8 +234,11 @@ class ChatActivity : AppCompatActivity() {
                 }
     }
 
-    //Set message to read so that in the contactsActivity we can count the no. of unread
-    //messages and can show it and also send the push notification
+    /**
+     * As the user opens up the ChatActivity Set messages to read so that in the
+     * contactsActivity we can count the no. of unread messages and can show it
+     * and also send the push notification
+     */
     private fun setMessagesToRead() {
         refSenderChats.document()
                 .update(IS_READ, true)

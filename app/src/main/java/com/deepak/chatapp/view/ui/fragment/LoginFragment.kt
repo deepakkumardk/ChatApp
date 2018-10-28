@@ -18,6 +18,9 @@ import org.jetbrains.anko.sdk27.coroutines.onClick
 import org.jetbrains.anko.support.v4.intentFor
 import org.jetbrains.anko.support.v4.toast
 
+/**
+ * The login interface for the user
+ */
 class LoginFragment : Fragment() {
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
@@ -32,6 +35,9 @@ class LoginFragment : Fragment() {
         btn_login.onClick { loginUser() }
     }
 
+    /**
+     * Login the user with the FirebaseAuth
+     */
     private fun loginUser() {
         val email = email_login.text.toString()
         val password = password_login.text.toString()
