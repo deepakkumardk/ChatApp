@@ -8,7 +8,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.deepak.chatapp"
-        minSdkVersion 16
+        minSdkVersion 18
         targetSdkVersion 28
         versionCode 3
         versionName "1.2.0"
@@ -48,16 +48,17 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
     //firestore
     implementation 'com.firebaseui:firebase-ui-firestore:4.1.0'
-    implementation 'com.google.firebase:firebase-firestore:17.1.1'
+    implementation 'com.google.firebase:firebase-firestore:17.1.2'
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
     //storage
-    implementation 'com.google.firebase:firebase-storage:16.0.3'
+    implementation 'com.google.firebase:firebase-storage:16.0.4'
     implementation 'com.firebaseui:firebase-ui-storage:4.1.0'
 
     //noinspection GradleDependency
     implementation 'com.github.hotchemi:permissionsdispatcher:3.3.1'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:3.3.1'
     implementation 'com.sangcomz:FishBun:0.8.6'
+    implementation 'br.com.simplepass:loading-button-android:1.14.0'
 }
 kotlin {
     experimental {

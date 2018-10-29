@@ -5,11 +5,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.WindowManager
 import com.bumptech.glide.Glide
 import com.deepak.chatapp.R
 import com.deepak.chatapp.util.*
@@ -24,10 +22,8 @@ import com.sangcomz.fishbun.FishBun
 import com.sangcomz.fishbun.adapter.image.impl.GlideAdapter
 import com.sangcomz.fishbun.define.Define
 import kotlinx.android.synthetic.main.activity_profile.*
-import kotlinx.android.synthetic.main.toolbar.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.android.synthetic.main.collapsing_toolbar.*
+import kotlinx.android.synthetic.main.content_profile.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import permissions.dispatcher.NeedsPermission
@@ -48,11 +44,9 @@ class ProfileActivity : AppCompatActivity() {
     private var uid: String? = null
     private var name: String? = null
     private var email: String? = null
-    private var imageUrl: String? = null
     private lateinit var refUser: DocumentReference
     private lateinit var refProfile: StorageReference
     private var photoUri = ArrayList<Uri>()
-    private var profileUrl: Uri? = null
     private var flagUploaded: Boolean = false   //For Firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +56,7 @@ class ProfileActivity : AppCompatActivity() {
         init()
         initToolbar()
         loadUserInfo()
-        display_image.onClick { pickImageFromGallery() }
+        fab_choose_profile_pic.onClick { pickImageFromGallery() }
         btn_upload.onClick {
             sharedPreferences.set(FLAG_UPLOAD, false)
             uploadProfileImageToStorage()
@@ -78,7 +72,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun initToolbar() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(toolbar_collapse)
         supportActionBar?.title = "Profile"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
@@ -108,9 +102,17 @@ class ProfileActivity : AppCompatActivity() {
         refProfile = storageRef.child("profile/${uid!!}")
 
         Glide.with(this)
-                .loadImage(imageUrl!!, display_image, R.drawable.ic_person)
+                .loadImage(R.drawable.ic_person, display_image)
 
-        getImageUrl()
+        getImageUrl(object : ImageCallback {
+            override fun imageUri(uri: Uri?) {
+                Glide.with(this@ProfileActivity)
+                        .loadImage(uri!!, display_image, R.drawable.ic_person)
+                if (!flagUploaded) {
+                    uploadImageUrlToFirestore(uri)
+                }
+            }
+        })
         display_name.text = name
         display_email.text = email
     }
@@ -119,12 +121,14 @@ class ProfileActivity : AppCompatActivity() {
      * Upload the profile image to the Firebase Storage
      */
     private fun uploadProfileImageToStorage() {
-        showProgressBar()
+        btn_upload.startAnimation()
 //        val compressedUri = photoUri[0].toScaledBitmap(applicationContext)?.toUri()!!
         refProfile.putFile(photoUri[0])
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
-                        hideProgressBar()
+//                        btn_upload.doneLoadingAnimation(Color.WHITE, Bitmap.createBitmap())
+                        btn_upload.hide()
+                        it.result?.totalByteCount
                         toast("Profile image uploaded successfully")
                     } else {
                         toast("Something went wrong...")
@@ -155,27 +159,16 @@ class ProfileActivity : AppCompatActivity() {
      * Fetch the imageUrl from the Database Storage as a Url and load this url into the imageView.
      * Using the shared preference check if the url is uploaded to firestore or not.
      */
-    private fun getImageUrl(): Uri? {
-        runBlocking {
-            async(CommonPool) {
-                refProfile.downloadUrl.addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        profileUrl = it.result
-                        Glide.with(this@ProfileActivity)
-                                .loadImage(profileUrl!!, display_image, R.drawable.ic_person)
-                        if (!flagUploaded) {
-                            uploadImageUrlToFirestore(profileUrl!!)
-                        }
-                        log(profileUrl.toString())
-                    } else {
-                        toast("Something went wrong...")
-                        log(it.exception?.message.toString())
-                    }
+    private fun getImageUrl(myCallback: ImageCallback) {
+        refProfile.downloadUrl.addOnCompleteListener {
+            when {
+                it.isSuccessful -> {
+                    val profileUrl = it.result
+                    myCallback.imageUri(profileUrl)
                 }
-                return@async profileUrl
-            }.await()
+                else -> toast("Something went wrong...")
+            }
         }
-        return profileUrl
     }
 
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -198,18 +191,5 @@ class ProfileActivity : AppCompatActivity() {
                 btn_upload.show()
             }
         }
-    }
-
-    private fun showProgressBar() {
-        progress_bar_profile.show()
-        linear_layout_profile.setBackgroundColor(Color.GRAY)
-        this.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-    }
-
-    private fun hideProgressBar() {
-        progress_bar_profile.hide()
-        linear_layout_profile.setBackgroundColor(Color.WHITE)
-        this.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 }

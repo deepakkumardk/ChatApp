@@ -22,6 +22,7 @@
         <activity android:name=".view.ui.ContactsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -35,7 +36,8 @@
             android:parentActivityName=".view.ui.ContactsActivity" />
         <activity
             android:name=".view.ui.ChatActivity"
-            android:parentActivityName=".view.ui.ContactsActivity" />
+            android:parentActivityName=".view.ui.ContactsActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
     </application>
 
 </manifest>

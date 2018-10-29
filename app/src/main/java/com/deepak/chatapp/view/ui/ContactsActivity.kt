@@ -17,9 +17,6 @@ import com.google.firebase.firestore.*
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
 import kotlinx.android.synthetic.main.toolbar.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 
@@ -38,26 +35,19 @@ class ContactsActivity : AppCompatActivity() {
     private var name: String? = null
     private var email: String? = null
     private var imageUrl: String? = null
-    private var userInfo: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
+        init()
         initToolbar()
-
-        val setting = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
-        firestore.firestoreSettings = setting
-
-        uid = auth.currentUser?.uid.toString()
-        currentUserInfo()
+        loadUserInfo()
         setOnlineField()
 
         val contactsQuery = firestore.collection("contacts")
                 .document(uid).collection("myContacts")
-                .orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.ASCENDING)
+                .orderBy(LAST_MESSAGE_SENT_AT, Query.Direction.DESCENDING)
         val options = FirestoreRecyclerOptions.Builder<User>()
                 .setQuery(contactsQuery, User::class.java)
                 .build()
@@ -83,7 +73,6 @@ class ContactsActivity : AppCompatActivity() {
                                 val url = Uri.parse(itemUser?.imageUrl)
                                 Glide.with(this@ContactsActivity)
                                         .loadImage(url, holder.userImage, R.drawable.ic_person)
-                                toast("image loaded with Glide refUsers")
                             } else {
                                 log(it.exception?.message!!)
                             }
@@ -93,13 +82,11 @@ class ContactsActivity : AppCompatActivity() {
                     val toUserUid = getItem(position).uid
                     val toUserName = getItem(position).name
                     val toUserEmail = getItem(position).email
-                    val toUserImageUrl = getItem(position).imageUrl
                     context.startActivity<ChatActivity>(
                             USER_ID to uid,
                             TO_USER_ID to toUserUid,
                             TO_USER_NAME to toUserName,
-                            TO_USER_EMAIL to toUserEmail,
-                            TO_USER_IMAGE_URL to toUserImageUrl)
+                            TO_USER_EMAIL to toUserEmail)
                 }
             }
         }
@@ -112,10 +99,18 @@ class ContactsActivity : AppCompatActivity() {
             startActivity<AllUsersActivity>(
                     USER_ID to uid,
                     USER_NAME to name,
-                    USER_EMAIL to email,
-                    TO_USER_IMAGE_URL to imageUrl)
+                    USER_EMAIL to email)
         }
 
+    }
+
+    private fun init() {
+        val setting = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        firestore.firestoreSettings = setting
+
+        uid = auth.currentUser?.uid.toString()
     }
 
     private fun initToolbar() {
@@ -142,26 +137,28 @@ class ContactsActivity : AppCompatActivity() {
     /**
      * Get all the fields from firestore of current logged in user from the "users" collection
      */
-    private fun currentUserInfo(): User? {
-        runBlocking {
-            async(CommonPool) {
-                firestore.collection("users")
-                        .document(uid)
-                        .get(Source.CACHE)
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                userInfo = it.result?.toObject(User::class.java)
-                                name = userInfo?.name
-                                email = userInfo?.email
-                                imageUrl = userInfo?.imageUrl
-                            } else {
-                                toast(it.exception?.message.toString())
-                            }
+    private fun loadUserInfo() {
+        fetchUserInfo(object : UserCallback {
+            override fun userInfo(user: User?) {
+                name = user?.name
+                email = user?.email
+            }
+        })
+    }
+
+    private fun fetchUserInfo(userCallback: UserCallback) {
+        firestore.collection("users")
+                .document(uid)
+                .get(Source.CACHE)
+                .addOnCompleteListener {
+                    when {
+                        it.isSuccessful -> {
+                            val userInfo = it.result?.toObject(User::class.java)
+                            userCallback.userInfo(userInfo)
                         }
-                return@async userInfo
-            }.await()
-        }
-        return userInfo
+                        else -> toast(it.exception?.message.toString())
+                    }
+                }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -169,15 +166,13 @@ class ContactsActivity : AppCompatActivity() {
         return true
     }
 
-    //check if imageUrl is working?
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.action_profile -> {
                 startActivity<ProfileActivity>(
                         USER_ID to uid,
                         USER_NAME to name,
-                        USER_EMAIL to email,
-                        USER_IMAGE_URL to imageUrl)
+                        USER_EMAIL to email)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -212,6 +207,7 @@ class ContactsActivity : AppCompatActivity() {
                         else -> log(it.exception?.message!!)
                     }
                 }
+        toast("Destroyed")
         super.onDestroy()
     }
 

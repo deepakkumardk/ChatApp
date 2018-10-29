@@ -38,9 +38,8 @@ class AllUsersActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_users)
 
-        initToolbar()
         init()
-
+        initToolbar()
         val query = firestore.collection("users")
                 .orderBy(USER_NAME, Query.Direction.ASCENDING)
         val options = FirestoreRecyclerOptions.Builder<User>()
@@ -59,8 +58,7 @@ class AllUsersActivity : AppCompatActivity() {
                 val context = holder.itemView.context
 
                 //get the images of all users from imageUrl field
-                refUsers = firestore.collection("users")
-                        .document(model.uid)
+                refUsers = firestore.collection("users").document(model.uid)
 
                 refUsers.get(Source.CACHE)
                         .addOnCompleteListener {
@@ -134,11 +132,8 @@ class AllUsersActivity : AppCompatActivity() {
                 .set(user, SetOptions.merge())
                 .addOnCompleteListener { task ->
                     when {
-                        task.isSuccessful -> toast("User added to contacts")
-                        else -> {
-                            toast("Something went wrong...")
-                            log(task.exception?.message.toString())
-                        }
+                        task.isSuccessful -> log("User added to contacts")
+                        else -> toast("Something went wrong...")
                     }
                 }
 
@@ -152,11 +147,9 @@ class AllUsersActivity : AppCompatActivity() {
         refContactsReceiver.document(uid)
                 .set(activeUser, SetOptions.merge())
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        log("User added to contacts")
-                    } else {
-                        toast("Something went wrong...")
-                        log(task.exception?.message.toString())
+                    when {
+                        task.isSuccessful -> log("User added to contacts")
+                        else -> toast("Something went wrong...")
                     }
                 }
     }

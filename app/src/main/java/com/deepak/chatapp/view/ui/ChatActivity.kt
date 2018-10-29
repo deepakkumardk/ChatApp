@@ -19,6 +19,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.activity_chat.*
+import kotlinx.android.synthetic.main.item_message_sent.*
 import kotlinx.android.synthetic.main.toolbar_chat.*
 import org.jetbrains.anko.clipboardManager
 import org.jetbrains.anko.find
@@ -35,6 +36,7 @@ class ChatActivity : AppCompatActivity() {
     private val firestore: FirebaseFirestore
             by lazy { FirebaseFirestore.getInstance() }
     private lateinit var refSenderChats: CollectionReference
+    private lateinit var refReceiverChats: CollectionReference
     private lateinit var senderUid: String
     private lateinit var receiverUid: String
     private lateinit var toUserName: String
@@ -54,6 +56,10 @@ class ChatActivity : AppCompatActivity() {
         //get all the chat messages from the subcollection myChats mapped to the receiverUid user
         refSenderChats = firestore.collection("chat").document(senderUid)
                 .collection("myChats").document(receiverUid)
+                .collection("allChats")
+
+        refReceiverChats = firestore.collection("chat").document(receiverUid)
+                .collection("myChats").document(senderUid)
                 .collection("allChats")
 
         setMessagesToRead()
@@ -97,7 +103,6 @@ class ChatActivity : AppCompatActivity() {
 
             override fun onChildChanged(type: ChangeEventType, snapshot: DocumentSnapshot, newIndex: Int, oldIndex: Int) {
                 super.onChildChanged(type, snapshot, newIndex, oldIndex)
-                log("onChildChanged")
                 log(snapshot.get("message").toString())
                 recycler_view_chat.layoutManager?.scrollToPosition(itemCount - 1)
             }
@@ -112,6 +117,8 @@ class ChatActivity : AppCompatActivity() {
             when {
                 message.isNotBlank() -> {
                     message_edit_text.setText("")
+                    Glide.with(this@ChatActivity)
+                            .loadImage(R.drawable.ic_not_sent, is_message_sent)
                     sendMessage(message)
                 }
                 else -> toast("Message is Blank")
@@ -131,7 +138,6 @@ class ChatActivity : AppCompatActivity() {
         toUserName = intent?.getStringExtra(TO_USER_NAME).toString()
         toUserEmail = intent?.getStringExtra(TO_USER_EMAIL).toString()
     }
-
 
     private fun initToolbar() {
         setSupportActionBar(toolbar_chat)
@@ -179,14 +185,14 @@ class ChatActivity : AppCompatActivity() {
                 .set(chatMapSender)
                 .addOnCompleteListener { task ->
                     when {
-                        task.isSuccessful -> log("message sent to user")
+                        task.isSuccessful -> {
+                            Glide.with(this@ChatActivity)
+                                    .loadImage(R.drawable.ic_sent, is_message_sent)
+                            log("message sent to user")
+                        }
                         else -> toast(task.exception?.message.toString())
                     }
                 }
-
-        val refReceiverChats = firestore.collection("chat").document(receiverUid)
-                .collection("myChats").document(senderUid)
-                .collection("allChats")
 
         //send message to receiver and add it to the myChats subcollection
         refReceiverChats.document(docId)
@@ -239,12 +245,20 @@ class ChatActivity : AppCompatActivity() {
      * contactsActivity we can count the no. of unread messages and can show it
      * and also send the push notification
      */
+    //TODO look at this you have to update again at both sender and receiver side for IS_READ
     private fun setMessagesToRead() {
-        refSenderChats.document()
-                .update(IS_READ, true)
+        refReceiverChats.document()
+                .get(Source.CACHE)
                 .addOnCompleteListener {
                     when {
-                        it.isSuccessful -> log("All message read")
+                        it.isSuccessful -> {
+                            val chat = it.result?.toObject(ChatMessage::class.java)
+                            if (chat?.isRead!!) {
+                                Glide.with(this@ChatActivity)
+                                        .loadImage(R.drawable.ic_read, is_message_sent)
+                            }
+                            log("All messages read")
+                        }
                         else -> log(it.exception?.message!!)
                     }
                 }
