@@ -73,7 +73,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun initToolbar() {
         setSupportActionBar(toolbar_collapse)
-        supportActionBar?.title = "Profile"
+        supportActionBar?.title = ""
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
     }

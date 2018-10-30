@@ -59,6 +59,7 @@ dependencies {
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:3.3.1'
     implementation 'com.sangcomz:FishBun:0.8.6'
     implementation 'br.com.simplepass:loading-button-android:1.14.0'
+    implementation 'com.github.daniel-stoneuk:material-about-library:2.3.0'
 }
 kotlin {
     experimental {

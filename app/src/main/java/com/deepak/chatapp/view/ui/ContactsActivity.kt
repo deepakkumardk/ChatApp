@@ -175,6 +175,10 @@ class ContactsActivity : AppCompatActivity() {
                         USER_EMAIL to email)
                 true
             }
+            R.id.action_about -> {
+                startActivity<AboutActivity>()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

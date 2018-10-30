@@ -28,3 +28,4 @@ const val RC_PICK_IMAGE = 1001
 //Shared Preferences constants
 const val PREF_FILE_NAME = "com.deepak.chatapp.util.pref"
 const val FLAG_UPLOAD = "flagUpload"
+const val GITHUB_ACCOUNT = "https://github.com/deepakkumardk"

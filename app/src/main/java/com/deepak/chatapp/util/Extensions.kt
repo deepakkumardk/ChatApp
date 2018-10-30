@@ -82,8 +82,7 @@ fun RequestManager.loadImage(model: Any, view: ImageView,
     this.load(model)
             .apply(RequestOptions()
                     .placeholder(resId)
-                    .error(resId)
-                    .fitCenter())
+                    .error(resId))
             .into(view)
 }
 
@@ -94,6 +93,10 @@ fun Uri?.toScaledBitmap(context: Context): Bitmap? {
 
 fun Bitmap?.toUri(): Uri? {
     return Uri.parse(this.bitmapToString())
+}
+
+fun String.toUri(): Uri {
+    return Uri.parse(this)
 }
 
 fun Bitmap?.bitmapToString(): String {

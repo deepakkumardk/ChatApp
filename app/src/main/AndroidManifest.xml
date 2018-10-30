@@ -32,12 +32,19 @@
             android:parentActivityName=".view.ui.ContactsActivity" />
         <activity
             android:name=".view.ui.ProfileActivity"
-            android:label="Profile"
-            android:parentActivityName=".view.ui.ContactsActivity" />
+            android:parentActivityName=".view.ui.ContactsActivity"
+            android:theme="@style/AppTheme.ProfileTheme" />
         <activity
             android:name=".view.ui.ChatActivity"
-            android:parentActivityName=".view.ui.ContactsActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:parentActivityName=".view.ui.ContactsActivity" />
+        <activity
+            android:name=".view.ui.AboutActivity"
+            android:theme="@style/AppTheme.MaterialAboutActivity" />
+        <activity
+            android:name=".view.ui.LicenseActivity"
+            android:label="Licenses"
+            android:parentActivityName=".view.ui.AboutActivity"
+            android:theme="@style/Theme.AppCompat.Light" />
     </application>
 
 </manifest>
