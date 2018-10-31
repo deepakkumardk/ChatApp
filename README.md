@@ -4,8 +4,10 @@ A simple Real time chat application using Kotlin and Firestore.
 Login to the app using the email Id and start using the Application to chat with your friend.
 
 :star: Simple interface for **one to one** chat <br>
-:star: **See the time** when you have sent the message <br>
+:star: **See the dynamic time** when you have sent the message <br>
 :star: **Link detection** of all types <br>
+:star: Delete the messages <br>
+:star: Upload your profile picture
 
 <img src="screenshots/ChatApp-demo-sender.gif" alt="Demo Sender" align="center" width="40%" hspace="20" title="Sender" /> <img src="screenshots/ChatApp-demo-receiver.gif" alt="Demo Receiver" align="center" width="40%" title="Receiver" />
 
