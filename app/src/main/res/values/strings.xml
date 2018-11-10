@@ -114,4 +114,7 @@
     </string>
     <string name="action_settings">Settings</string>
     <string name="about">About</string>
+    <string name="about_me">About Me</string>
+    <string name="edit_about_me_button">Edit About Me Button</string>
+    <string name="about_me_text">Hey, Checkout this new Amazing app</string>
 </resources>

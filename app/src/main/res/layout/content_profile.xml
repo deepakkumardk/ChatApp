@@ -8,7 +8,7 @@
     tools:context=".view.ui.ProfileActivity"
     tools:showIn="@layout/activity_profile">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -18,6 +18,7 @@
             android:id="@+id/btn_upload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:layout_gravity="center"
             android:background="@color/colorMaterialGreen"
             android:drawableStart="@drawable/ic_file_upload"
@@ -26,54 +27,75 @@
             android:textColor="@color/colorWhite"
             android:visibility="gone" />
 
-        <android.support.v7.widget.CardView
+        <TextView
+            android:id="@+id/display_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            app:cardElevation="8dp">
+            android:layout_below="@+id/btn_upload"
+            android:layout_marginStart="32dp"
+            android:padding="8dp"
+            android:textColor="@color/colorBlack"
+            android:textSize="24sp"
+            tools:text="Deepak Kumar" />
 
-            <TextView
-                android:id="@+id/display_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_person_profile"
-                android:drawablePadding="8dp"
-                android:padding="8dp"
-                android:textColor="@color/colorBlack"
-                android:textSize="20sp"
-                tools:text="Deepak Kumar" />
-
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
+        <TextView
+            android:id="@+id/display_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/display_name"
+            android:drawableStart="@drawable/ic_email_profile"
+            android:drawablePadding="8dp"
+            android:padding="8dp"
+            android:textColor="@color/colorBlack"
+            android:textSize="20sp"
+            tools:text="deepak@gmail.com" />
+
+        <TextView
+            android:id="@+id/about_me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/display_email"
+            android:drawableStart="@drawable/ic_person_black"
+            android:drawablePadding="8dp"
+            android:padding="8dp"
+            android:text="@string/about_me"
+            android:textColor="@color/colorPrimary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/display_email"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/edit_about_me_button"
+            android:padding="8dp"
+            android:src="@drawable/ic_create_black" />
+
+        <TextView
+            android:id="@+id/text_about_me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/about_me"
             android:layout_margin="8dp"
-            app:cardElevation="8dp">
-
-            <TextView
-                android:id="@+id/display_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_email_profile"
-                android:drawablePadding="8dp"
-                android:padding="8dp"
-                android:textColor="@color/colorBlack"
-                android:textSize="20sp"
-                tools:text="deepak@gmail.com" />
-
-        </android.support.v7.widget.CardView>
+            android:padding="8dp"
+            android:text="@string/about_me_text"
+            android:textColor="@color/colorBlack"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btn_logout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/text_about_me"
+            android:layout_centerHorizontal="true"
             android:layout_gravity="center"
-            android:layout_margin="8dp"
+            android:layout_margin="16dp"
             android:background="@color/colorPrimaryDark"
             android:text="@string/logout"
             android:textColor="@color/colorWhite" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </android.support.v4.widget.NestedScrollView>

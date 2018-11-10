@@ -61,7 +61,7 @@ class ProfileActivity : AppCompatActivity() {
             sharedPreferences.set(FLAG_UPLOAD, false)
             uploadProfileImageToStorage()
         }
-        btn_logout.onClick { _ ->
+        btn_logout.onClick {
             alert("You will be logged out!!", "Logout") {
                 yesButton { logout() }
                 noButton { it.dismiss() }
@@ -125,14 +125,14 @@ class ProfileActivity : AppCompatActivity() {
 //        val compressedUri = photoUri[0].toScaledBitmap(applicationContext)?.toUri()!!
         refProfile.putFile(photoUri[0])
                 .addOnCompleteListener {
-                    if (it.isSuccessful) {
-//                        btn_upload.doneLoadingAnimation(Color.WHITE, Bitmap.createBitmap())
-                        btn_upload.hide()
-                        it.result?.totalByteCount
-                        toast("Profile image uploaded successfully")
-                    } else {
-                        toast("Something went wrong...")
-                        log(it.exception?.message.toString())
+                    when {
+                        it.isSuccessful -> {
+//                            btn_upload.doneLoadingAnimation(Color.WHITE, Bitmap.createBitmap())
+                            btn_upload.hide()
+                            val bytes = it.result?.totalByteCount
+                            toast("Profile image uploaded successfully")
+                        }
+                        else -> toast("Something went wrong...")
                     }
                 }
     }
@@ -145,12 +145,12 @@ class ProfileActivity : AppCompatActivity() {
         val uriMap = mutableMapOf<String, Any>(USER_IMAGE_URL to uri.toString())
         refUser.set(uriMap, SetOptions.merge())
                 .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        sharedPreferences.set(FLAG_UPLOAD, true)
-                        log("Profile imageUrl uploaded successfully")
-                    } else {
-                        toast("Something went wrong...")
-                        log(it.exception?.message.toString())
+                    when {
+                        it.isSuccessful -> {
+                            sharedPreferences.set(FLAG_UPLOAD, true)
+                            log("Profile imageUrl uploaded successfully")
+                        }
+                        else -> toast("Something went wrong...")
                     }
                 }
     }

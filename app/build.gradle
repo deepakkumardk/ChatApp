@@ -37,13 +37,13 @@ dependencies {
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support:customtabs:28.0.0'
     implementation 'com.android.support:multidex:1.0.3'
-    implementation 'org.jetbrains.anko:anko:0.10.6'
+    implementation 'org.jetbrains.anko:anko:0.10.7-rc13'
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     kapt 'com.github.bumptech.glide:compiler:4.7.1'
     implementation 'de.hdodenhof:circleimageview:2.2.0'
     //firebase
-    implementation 'com.google.firebase:firebase-core:16.0.4'
+    implementation 'com.google.firebase:firebase-core:16.0.5'
     implementation 'com.google.firebase:firebase-auth:16.0.5'
     implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
     //firestore
@@ -59,6 +59,7 @@ dependencies {
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:3.3.1'
     implementation 'com.sangcomz:FishBun:0.8.6'
     implementation 'br.com.simplepass:loading-button-android:1.14.0'
+    //noinspection GradleDependency
     implementation 'com.github.daniel-stoneuk:material-about-library:2.3.0'
 }
 kotlin {
