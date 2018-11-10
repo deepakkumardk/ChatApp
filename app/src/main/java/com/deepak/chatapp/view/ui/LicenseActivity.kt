@@ -25,8 +25,6 @@ class LicenseActivity : AppCompatActivity() {
         override fun createView(ui: AnkoContext<LicenseActivity>) = with(ui) {
             verticalLayout {
                 padding = dip(8)
-                layoutParams.width = wrapContent
-                layoutParams.height = wrapContent
                 textView("Kotlin By JetBrains")
                 textView("Android Support Libraries AOSP")
                 textView("Firebase by Google")

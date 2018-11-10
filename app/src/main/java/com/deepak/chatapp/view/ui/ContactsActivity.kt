@@ -211,7 +211,6 @@ class ContactsActivity : AppCompatActivity() {
                         else -> log(it.exception?.message!!)
                     }
                 }
-        toast("Destroyed")
         super.onDestroy()
     }
 

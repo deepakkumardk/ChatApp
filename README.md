@@ -1,3 +1,7 @@
+<h2 align=center>
+<img src="screenshots/ic_chatapp.png" width=50%>
+</h2>
+
 # ChatApp (In Progress)
 A simple Real time chat application using Kotlin and Firestore.
 

@@ -3,19 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
     android:id="@+id/linear_layout_signup"
     tools:context=".view.ui.fragment.SignupFragment">
 
-    <de.hdodenhof.circleimageview.CircleImageView
+
+    <ImageView
         android:id="@+id/app_logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="center"
         android:layout_margin="16dp"
         android:contentDescription="@string/app_logo"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@drawable/ic_chatapp" />
 
     <TextView
         android:id="@+id/signup_title"

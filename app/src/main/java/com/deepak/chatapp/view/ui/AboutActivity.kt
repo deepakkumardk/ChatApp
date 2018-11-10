@@ -23,7 +23,7 @@ class AboutActivity : MaterialAboutActivity() {
         appCard.addItem(MaterialAboutTitleItem.Builder()
                 .text("ChatApp")
                 .desc("© 2018 Deepak Kumar")
-                .icon(R.drawable.ic_info_black)
+                .icon(R.drawable.ic_chatapp)
                 .build())
         appCard.addItem(MaterialAboutActionItem.Builder()
                 .text("Version")
