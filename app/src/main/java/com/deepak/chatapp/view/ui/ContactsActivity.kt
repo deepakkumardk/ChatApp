@@ -2,6 +2,7 @@ package com.deepak.chatapp.view.ui
 
 import android.net.Uri
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.view.*
@@ -16,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.activity_contacts.*
+import kotlinx.android.synthetic.main.item_image_dialog.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
@@ -88,6 +90,16 @@ class ContactsActivity : AppCompatActivity() {
                             TO_USER_NAME to toUserName,
                             TO_USER_EMAIL to toUserEmail)
                 }
+                holder.userImage.setOnClickListener {
+                    val alert = AlertDialog.Builder(this@ContactsActivity)
+                    val view = LayoutInflater.from(applicationContext).inflate(R.layout.item_image_dialog, null)
+                    alert.setView(view)
+
+                    Glide.with(this@ContactsActivity)
+                            .load(getItem(position).imageUrl.toUri())
+                            .into(item_image_dialog)
+                    alert.show()
+                }
             }
         }
 
@@ -109,7 +121,6 @@ class ContactsActivity : AppCompatActivity() {
                 .setPersistenceEnabled(true)
                 .build()
         firestore.firestoreSettings = setting
-
         uid = auth.currentUser?.uid.toString()
     }
 

@@ -117,4 +117,5 @@
     <string name="about_me">About Me</string>
     <string name="edit_about_me_button">Edit About Me Button</string>
     <string name="about_me_text">Hey, Checkout this new Amazing app</string>
+    <string name="item_image_dialog">Item Image Dialog</string>
 </resources>
